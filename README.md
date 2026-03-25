@@ -19,7 +19,7 @@ Breve descripción de la aplicación, y un listado de las funcionalidades más r
 ## Integrantes Grupo
 - Ismael Brea Arias <ismael.brea@udc.es>
 - Rubén González Ouzounis <ruben.gonzalez.ouzounis@udc.es>
-- [...]
+- Manuel Valiña Pérez  <manuel.valina.perez@udc.es>
 
 ---
 
