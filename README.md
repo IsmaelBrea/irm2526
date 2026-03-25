@@ -4,7 +4,8 @@
 [//]: # (Member3: Y el Numero 3::numero.tres@udc.es)
 [//]: # (Teacher: AR)
 <!-- Si quereis hacerle un logo (con IA o como prefirais) ya es lucirse y queda muy bien :) -->
-<img src="https://raw.githubusercontent.com/enjeck/libre-logos/refs/heads/main/src/images/logos/svg/2-split-circle.svg" align="right" style="width: 250px; height: 250px;"/>
+<img width="435" height="400" alt="imagen" src="https://github.com/user-attachments/assets/3a793e01-ed3b-4b29-a994-8717411b7f98" 
+align="right" style="width: 300px; height: 250px;"/>
 
 # IRM Performance Tracker 
 Breve descripción de la aplicación, y un listado de las funcionalidades más relevantes:
