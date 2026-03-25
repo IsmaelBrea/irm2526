@@ -6,7 +6,7 @@
 <!-- Si quereis hacerle un logo (con IA o como prefirais) ya es lucirse y queda muy bien :) -->
 <img src="https://raw.githubusercontent.com/enjeck/libre-logos/refs/heads/main/src/images/logos/svg/2-split-circle.svg" align="right" style="width: 250px; height: 250px;"/>
 
-# Nombre Proyecto
+# IRM Performance Tracker 
 Breve descripción de la aplicación, y un listado de las funcionalidades más relevantes:
 - Caso de uso 1
 - Caso de uso 2
@@ -16,8 +16,8 @@ Breve descripción de la aplicación, y un listado de las funcionalidades más r
 ---
 
 ## Integrantes Grupo
-- Nombre Apellido Apellido <correo@udc.es>
-- Nombre Apellido Apellido <correo@udc.es>
+- Ismael Brea Arias <ismael.brea@udc.es>
+- Rubén González Ouzounis <ruben.gonzalez.ouzounis@udc.es>
 - [...]
 
 ---
