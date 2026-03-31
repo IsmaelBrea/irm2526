@@ -4,8 +4,10 @@
 [//]: # (Member3: Y el Numero 3::numero.tres@udc.es)
 [//]: # (Teacher: AR)
 <!-- Si quereis hacerle un logo (con IA o como prefirais) ya es lucirse y queda muy bien :) -->
-<img width="435" height="400" alt="imagen" src="https://github.com/user-attachments/assets/3a793e01-ed3b-4b29-a994-8717411b7f98" 
+<img width="1024" height="941" alt="imagen" src="https://github.com/user-attachments/assets/eb8c3d9c-40b1-48b1-a01b-a554fe31c189"
 align="right" style="width: 300px; height: 250px;"/>
+
+
 
 # IRM Performance Tracker 
 Breve descripción de la aplicación, y un listado de las funcionalidades más relevantes:
