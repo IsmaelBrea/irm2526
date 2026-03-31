@@ -4,7 +4,7 @@
 [//]: # (Member3: Y el Numero 3::numero.tres@udc.es)
 [//]: # (Teacher: AR)
 <!-- Si quereis hacerle un logo (con IA o como prefirais) ya es lucirse y queda muy bien :) -->
-<img width="1024" height="941" alt="imagen" src="https://github.com/user-attachments/assets/eb8c3d9c-40b1-48b1-a01b-a554fe31c189"
+<img width="674" height="588" alt="imagen" src="https://github.com/user-attachments/assets/bdbafec2-f468-4623-9175-80f9ed86fd1c"
 align="right" style="width: 300px; height: 250px;"/>
 
 
