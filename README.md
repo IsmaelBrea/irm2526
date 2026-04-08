@@ -4,15 +4,16 @@
 [//]: # (Member3: Y el Numero 3::numero.tres@udc.es)
 [//]: # (Teacher: AR)
 <!-- Si quereis hacerle un logo (con IA o como prefirais) ya es lucirse y queda muy bien :) -->
-<img width="674" height="588" alt="imagen" src="https://github.com/user-attachments/assets/bdbafec2-f468-4623-9175-80f9ed86fd1c"
-align="right" style="width: 300px; height: 250px;"/>
+<img width="300" src="https://github.com/user-attachments/assets/bdbafec2-f468-4623-9175-80f9ed86fd1c" align="right"/>
 
-
-
-# IRM Performance Tracker 
+# IRM Performance
+<p align="justify">
 El proyecto IRM Performance Tracker consiste en el desarrollo de una aplicación web bajo el framework Django que permite analizar el rendimiento de equipos y jugadores de fútbol mediante el uso de Python en el lado del servidor. El sistema integrará datos en tiempo real consultados a APIs externas, para transformar estadísticas brutas en indicadores de valor. Toda la aplicación se desplegará utilizando contenedores de Docker y se gestionará mediante control de versiones en Git, asegurando un entorno de ejecución profesional y colaborativo.
+</p>
 
+<p align="justify">
 El núcleo de la propuesta reside en el análisis avanzado con la librería Pandas, que se encargará de realizar una limpieza exhaustiva de los datos y calcular métricas críticas como la probabilidad de victoria basada en medias móviles de goles. Además, se procesarán ratios de eficiencia de delanteros (goles por tiro a puerta) para ofrecer una visión profunda del estado de forma de los deportistas. El backend de Django también gestionará una base de datos de usuarios para permitir la personalización de ligas y equipos favoritos.
+</p>
 
 Listado de las funcionalidades:
 
