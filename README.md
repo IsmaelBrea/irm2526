@@ -10,11 +10,71 @@ align="right" style="width: 300px; height: 250px;"/>
 
 
 # IRM Performance Tracker 
-Breve descripción de la aplicación, y un listado de las funcionalidades más relevantes:
-- Caso de uso 1
-- Caso de uso 2
-- Caso de uso 3
-- [...]
+El proyecto IRM Performance Tracker consiste en el desarrollo de una aplicación web bajo el framework Django que permite analizar el rendimiento de equipos y jugadores de fútbol mediante el uso de Python en el lado del servidor. El sistema integrará datos en tiempo real consultados a APIs externas, para transformar estadísticas brutas en indicadores de valor. Toda la aplicación se desplegará utilizando contenedores de Docker y se gestionará mediante control de versiones en Git, asegurando un entorno de ejecución profesional y colaborativo.
+
+El núcleo de la propuesta reside en el análisis avanzado con la librería Pandas, que se encargará de realizar una limpieza exhaustiva de los datos y calcular métricas críticas como la probabilidad de victoria basada en medias móviles de goles. Además, se procesarán ratios de eficiencia de delanteros (goles por tiro a puerta) para ofrecer una visión profunda del estado de forma de los deportistas. El backend de Django también gestionará una base de datos de usuarios para permitir la personalización de ligas y equipos favoritos.
+
+Listado de las funcionalidades:
+
+- F1. Selección de liga: Permite al usuario seleccionar una liga desde un menú desplegable o buscador.
+Entrada: Selección de liga por nombre o identificador.
+Salida: Liga seleccionada y carga de equipos asociados.
+
+- F2. Selección de equipos: Permite seleccionar dos equipos pertenecientes a la liga elegida, validando que no sean iguales.
+Entrada: Selección de dos equipos mediante dropdown o búsqueda.
+Salida: Equipos seleccionados y validados para la comparación.
+
+- F3. Filtrado dinámico de equipos: Actualiza la lista de equipos disponibles en función de la liga seleccionada.
+Entrada: Cambio en la selección de liga.
+Salida: Lista de equipos filtrada según la liga.
+
+- F4. Comparativa de métricas basadas en el rendimiento reciente: Muestra una comparación entre dos equipos basada en sus últimos 10 partidos.
+Entrada: IDs de ambos equipos y datos históricos obtenidos de la API.
+Salida: Métricas comparadas como goles a favor, goles en contra y puntos obtenidos.
+
+- F5. Gráficas comparativas de equipo: Identifica patrones específicos de rendimiento como resultados de cada jornada.
+Entrada: Historial de encuentros recientes y métricas.
+Salida: Gráfica de resultados y de estadísticas varias.
+
+- F6. Estimación de probabilidad de resultado: Genera una predicción basada en las estadísticas calculadas.
+Entrada: Métricas agregadas de ambos equipos.
+Salida: Probabilidad estimada de victoria, empate o derrota.
+
+- F7. Consulta de detalle de equipo: Permite visualizar información detallada de uno de los equipos seleccionados.
+Entrada: Selección de equipo.
+Salida: Información general y estadísticas del equipo.
+
+- F8. Consulta de últimos partidos de un equipo: Permite visualizar el historial reciente de un equipo.
+Entrada: ID del equipo.
+Salida: Lista de los últimos 10 partidos (ampliables) con resultados.
+
+- F9. Consulta de estadísticas de jugadores: Permite visualizar estadísticas individuales de jugadores de un equipo.
+Entrada: ID del equipo.
+Salida: Lista de jugadores con estadísticas relevantes.
+
+- F10. Ranking de jugadores por liga: Muestra rankings de jugadores dentro de una liga.
+Entrada: ID de liga.
+Salida: Máximos goleadores, máximos asistentes, mayor número de tarjetas rojas y mayor número de tarjetas amarillas.
+
+- F11. Navegación entre módulos: Permite moverse entre las distintas secciones de la aplicación.
+Entrada: Interacciones del usuario.
+Salida: Cambio de vista manteniendo el contexto.
+
+- F12. Persistencia de estado: Mantiene la selección de liga y equipos durante la navegación.
+Entrada: Acciones del usuario.
+Salida: Estado guardado durante la sesión.
+
+- F13. Obtención de datos desde API-Football: Recupera datos de ligas, equipos, partidos y jugadores desde la API externa.
+Entrada: Peticiones HTTP a la API.
+Salida: Datos estructurados en formato JSON.
+
+- F14. Procesamiento de datos: Transforma los datos obtenidos en información útil para el sistema.
+Entrada: Datos en bruto de la API.
+Salida: Datos procesados para visualización y análisis.
+
+- F15. Gestión de errores: Maneja errores en peticiones o datos inconsistentes.
+Entrada: Fallos en la API o datos inválidos.
+Salida: Mensajes de error controlados para el usuario.
 
 ---
 
