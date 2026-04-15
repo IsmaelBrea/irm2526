@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .sidebar { 
+            width: 200px; 
+            float: left; 
+        }
+        .league-link {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            border-left: 3px solid transparent;
+        }
+        .league-link.active {
+            border-left-color: green;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        {% for league in leagues %}
+    <a href="?league={{ league.id }}" 
+       class="league-link {% if selected_league|add:'0' == league.id %}active{% endif %}">
+        {% if league.emblem %}
+            <img src="{{ league.emblem }}" alt="{{ league.name }}" style="width: 20px; height: 20px; margin-right: 10px;">
+        {% endif %}
+        {{ league.name }}
+    </a>
+{% endfor %}
+    </div>
+    <div class="content">
+    {% if selected_league %}
+        <p>Liga seleccionada: <strong>{{ selected_league.name }}</strong></p>
+    {% else %}
+        <p>Selecciona una liga</p>
+    {% endif %}
+</div>
+</body>
+</html>
