@@ -1,0 +1,40 @@
+{% extends "tracker/base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-8">
+    <div>
+        <h2 class="text-3xl font-bold">Explorar Ligas</h2>
+        <p class="text-slate-400">Selecciona una competición para ver estadísticas detalladas.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for league in leagues %}
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl hover:border-green-500/50 transition-all group">
+            <div class="flex items-center gap-4">
+                {% if league.emblem %}
+                    <img src="{{ league.emblem }}" alt="{{ league.name }}" class="w-12 h-12 object-contain">
+                {% endif %}
+                <div>
+                    <h3 class="font-bold text-lg group-hover:text-green-400">{{ league.name }}</h3>
+                    <p class="text-slate-500 text-sm">{{ league.area.name }}</p>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-between items-center">
+                <span class="text-xs font-mono text-slate-500">ID: {{ league.id }}</span>
+                <a href="?league={{ league.id }}" class="text-sm font-medium text-green-500 hover:underline">Ver detalles →</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if selected_league %}
+    <div class="mt-12 bg-slate-900 border border-green-500/30 rounded-2xl p-8">
+        <h3 class="text-2xl font-bold text-green-400">Detalles de {{ selected_league.name }}</h3>
+        <div class="grid grid-cols-2 gap-4 mt-4 text-slate-300">
+            <p>Plan: <span class="text-white font-medium">{{ selected_league.plan }}</span></p>
+            <p>Código: <span class="text-white font-medium">{{ selected_league.code }}</span></p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
