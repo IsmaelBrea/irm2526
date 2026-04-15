@@ -33,6 +33,27 @@
     <div class="content">
     {% if selected_league %}
         <p>Liga seleccionada: <strong>{{ selected_league.name }}</strong></p>
+        <h3>Máximos Goleadores</h3>
+        {% if scorers %}
+        <table border="1">
+            <tr>
+                <th>Jugador</th>
+                <th>Nacionalidad</th>
+                <th>Equipo</th>
+                <th>Goles</th>
+            </tr>
+            {% for scorer in scorers %}
+            <tr>
+                <td>{{ scorer.player.name }}</td>
+                <td>{{ scorer.player.nationality }}</td>
+                <td>{{ scorer.team.name }}</td>
+                <td>{{ scorer.goals }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>Sin datos de goleadores</p>
+        {% endif %}
     {% else %}
         <p>Selecciona una liga</p>
     {% endif %}
