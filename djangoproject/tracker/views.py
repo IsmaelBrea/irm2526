@@ -4,6 +4,8 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
+from django.http import JsonResponse
+from .services import fetch_team_stats
 
 from .models import Choice, Question
 
@@ -57,3 +59,24 @@ def vote(request, question_id):
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
         return HttpResponseRedirect(reverse("tracker:results", args=(question.id,)))
+
+
+def test_api(request):
+    """
+    Función exacta para comprobar el Requisito F13 (Conexión API).
+    """
+    # Probamos con el ID 33 (Manchester United)
+    data = fetch_team_stats(team_id=33)
+    
+    if data:
+        # Esto imprimirá en la consola de tu terminal qué token se usó
+        return JsonResponse({
+            "status": "success",
+            "message": "Conexión establecida correctamente",
+            "data": data
+        })
+    else:
+        return JsonResponse({
+            "status": "error", 
+            "message": "Error al conectar con API-Football. Revisa tus Keys."
+        }, status=500)
