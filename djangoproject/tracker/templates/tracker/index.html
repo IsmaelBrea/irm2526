@@ -1,75 +1,91 @@
 {% extends "tracker/base.html" %}
+{% load static %}
 
 {% block content %}
-<div class="ml-4 max-w-6xl space-y-8">
+<div class="w-full space-y-8">
     {% if selected_league %}
-        <div class="flex items-center gap-6 pb-6 border-b border-slate-800 mb-8">
+        <div class="flex items-center gap-6 pb-6 border-b border-slate-800 mb-8 w-full">
             {% if selected_league.emblem %}
-                <img src="{{ selected_league.emblem }}" class="w-12 h-12 object-contain">
+                <img src="{{ selected_league.emblem }}" class="w-16 h-16 object-contain">
             {% endif %}
             <div>
-                <h2 class="text-3xl font-black text-white tracking-tighter uppercase">{{ selected_league.name }}</h2>
-                <p class="text-green-500 font-mono text-[10px] uppercase tracking-[0.2em]">{{ selected_league.area.name }}</p>
+                <h2 class="text-4xl font-black text-white tracking-tighter uppercase">{{ selected_league.name }}</h2>
+                <p class="text-green-500 font-mono text-sm uppercase tracking-[0.2em]">{{ selected_league.area.name }}</p>
             </div>
         </div>
 
-        <div class="flex flex-row gap-4 max-w-4xl">
+        <div class="flex flex-row items-stretch gap-6 w-full">
 
-            <div class="flex-1 p-4 bg-slate-900/50 border border-slate-800 rounded-2xl space-y-3 relative">
-                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Local Team</p>
-                <div class="flex items-center gap-2">
-                    <div class="relative flex-1">
-                        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                            <svg class="h-3 w-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
+            <div class="flex-1 min-h-[200px] p-8 bg-slate-900/50 border border-slate-800 rounded-[2.5rem] space-y-6 relative flex flex-col justify-center">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Local Team</p>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-2 relative">
+                        <div class="relative flex-1">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                            <input type="text" id="search-local" placeholder="Buscar equipo..." autocomplete="off"
+                                   class="w-full bg-slate-800 border border-slate-700 rounded-2xl pl-12 pr-4 py-4 text-sm focus:border-green-500 outline-none text-slate-300 transition-all">
                         </div>
-                        <input type="text" id="search-local" placeholder="Seleccionar equipo" autocomplete="off"
-                               class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-8 pr-2 py-1.5 text-[11px] focus:border-green-500 outline-none text-slate-300">
+                        <select id="select-local" size="1"
+                                class="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-4 text-sm focus:border-green-500 outline-none cursor-pointer text-green-500 font-bold w-16 text-center">
+                            <option value="">+</option>
+                            {% for team in teams %}
+                                <option value="{{ team.id }}">{{ team.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <select id="select-local" size="1"
-                            class="bg-slate-800 border border-slate-700 rounded-lg px-1.5 py-1.5 text-[11px] focus:border-green-500 outline-none cursor-pointer text-green-500 font-bold w-10 text-center transition-all">
-                        <option value="">+</option>
-                        {% for team in teams %}
-                            <option value="{{ team.id }}">{{ team.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div id="display-local" class="h-14 border border-dashed border-slate-800 rounded-xl flex items-center justify-center text-slate-500 text-[9px] uppercase font-mono px-2 text-center">
-                    [ Sin selección ]
+                    <div id="display-local" class="h-20 border border-dashed border-slate-800 rounded-[1.5rem] flex items-center justify-center text-slate-500 text-xs uppercase font-mono px-6 text-center transition-all duration-300">
+                        [ SIN SELECCIÓN ]
+                    </div>
                 </div>
             </div>
 
-            <div class="flex-1 p-4 bg-slate-900/50 border border-slate-800 rounded-2xl space-y-3 relative">
-                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Visitor Team</p>
-                <div class="flex items-center gap-2">
-                    <div class="relative flex-1">
-                        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                            <svg class="h-3 w-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
+            <div class="flex-1 min-h-[200px] p-8 bg-slate-900/50 border border-slate-800 rounded-[2.5rem] space-y-6 relative flex flex-col justify-center">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Visitor Team</p>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-2 relative">
+                        <div class="relative flex-1">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                            <input type="text" id="search-visitor" placeholder="Buscar equipo..." autocomplete="off"
+                                   class="w-full bg-slate-800 border border-slate-700 rounded-2xl pl-12 pr-4 py-4 text-sm focus:border-green-500 outline-none text-slate-300 transition-all">
                         </div>
-                        <input type="text" id="search-visitor" placeholder="Seleccionar equipo" autocomplete="off"
-                               class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-8 pr-2 py-1.5 text-[11px] focus:border-green-500 outline-none text-slate-300">
+                        <select id="select-visitor" size="1"
+                                class="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-4 text-sm focus:border-green-500 outline-none cursor-pointer text-green-500 font-bold w-16 text-center">
+                            <option value="">+</option>
+                            {% for team in teams %}
+                                <option value="{{ team.id }}">{{ team.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <select id="select-visitor" size="1"
-                            class="bg-slate-800 border border-slate-700 rounded-lg px-1.5 py-1.5 text-[11px] focus:border-green-500 outline-none cursor-pointer text-green-500 font-bold w-10 text-center transition-all">
-                        <option value="">+</option>
-                        {% for team in teams %}
-                            <option value="{{ team.id }}">{{ team.name }}</option>
-                        {% endfor %}
-                    </select>
+                    <div id="display-visitor" class="h-20 border border-dashed border-slate-800 rounded-[1.5rem] flex items-center justify-center text-slate-500 text-xs uppercase font-mono px-6 text-center transition-all duration-300">
+                        [ SIN SELECCIÓN ]
+                    </div>
                 </div>
-                <div id="display-visitor" class="h-14 border border-dashed border-slate-800 rounded-xl flex items-center justify-center text-slate-500 text-[9px] uppercase font-mono px-2 text-center">
-                    [ Sin selección ]
-                </div>
+            </div>
+
+            <div class="flex flex-row items-center gap-4">
+                <button id="btn-reverse" class="group bg-slate-800 hover:bg-slate-700 border border-slate-700 p-6 rounded-3xl transition-all active:scale-90 shadow-xl">
+                    <svg class="w-8 h-8 text-green-500 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                    </svg>
+                </button>
+                <button class="bg-green-600 hover:bg-green-500 text-black font-black py-10 px-10 rounded-3xl transition-all uppercase text-xs tracking-[0.2em] shadow-lg shadow-green-900/20 active:scale-95 leading-tight text-center">
+                    Iniciar<br>Comparación
+                </button>
             </div>
         </div>
 
     {% else %}
-        <div class="h-[50vh] flex items-center">
-            <p class="text-slate-500 font-mono text-[10px] uppercase tracking-widest animate-pulse">
-                <-- Selecciona competición
+        <div class="w-full h-[60vh] flex items-center justify-center border-2 border-dashed border-slate-900 rounded-[3.5rem]">
+            <p class="text-slate-600 font-mono text-sm uppercase tracking-[0.4em] animate-pulse text-center">
+                <-- Selecciona competición en el menú lateral
             </p>
         </div>
     {% endif %}
@@ -86,49 +102,63 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', function() {
             const searchTerm = input.value.toLowerCase();
             if (searchTerm.length > 0) {
-                select.size = 6;
-                select.classList.add('absolute', 'z-50', 'w-40', 'mt-32', 'right-4', 'shadow-2xl', 'border-green-500/50');
+                select.size = 8;
+                // Posicionamiento absoluto respecto al contenedor del buscador para que no rompa el diseño
+                select.classList.add('absolute', 'z-50', 'w-full', 'top-full', 'mt-2', 'bg-slate-800', 'shadow-2xl');
             } else {
                 select.size = 1;
-                select.classList.remove('absolute', 'z-50', 'w-40', 'mt-32', 'right-4');
+                select.classList.remove('absolute', 'z-50', 'w-full', 'top-full', 'mt-2');
             }
-
             select.innerHTML = '';
             select.appendChild(originalOptions[0]);
-            const filtered = originalOptions.slice(1).filter(opt =>
-                opt.text.toLowerCase().includes(searchTerm)
-            );
+            const filtered = originalOptions.slice(1).filter(opt => opt.text.toLowerCase().includes(searchTerm));
             filtered.forEach(opt => select.appendChild(opt.cloneNode(true)));
         });
 
         select.addEventListener('change', function() {
             if (select.value !== "") {
                 const selectedName = select.options[select.selectedIndex].text;
-
                 const otherInputId = inputId === 'search-local' ? 'search-visitor' : 'search-local';
-                const otherValue = document.getElementById(otherInputId).value;
+                const otherInput = document.getElementById(otherInputId);
 
-                if (selectedName === otherValue) {
-                    alert("ERROR IRM: No puedes seleccionar el mismo equipo para la comparación.");
+                if (selectedName === otherInput.value) {
+                    alert("ERROR IRM: No puedes seleccionar el mismo equipo.");
                     input.value = "";
                     display.innerText = "[ Selección Inválida ]";
-                    display.classList.add('text-red-500', 'border-red-900/50');
-                    display.classList.remove('text-green-500');
+                    display.className = "h-20 border border-dashed border-red-900 rounded-[1.5rem] flex items-center justify-center text-red-500 text-xs uppercase font-mono px-6 text-center bg-red-900/10";
                 } else {
                     input.value = selectedName;
                     display.innerText = selectedName;
-                    display.classList.remove('text-slate-500', 'text-red-500');
-                    display.classList.add('text-green-500', 'border-green-500/40', 'bg-green-500/5');
+                    display.className = "h-20 border border-dashed border-green-500/40 bg-green-500/5 rounded-[1.5rem] flex items-center justify-center text-green-500 text-sm font-black uppercase font-mono px-6 text-center shadow-inner";
                 }
-
                 select.size = 1;
-                select.classList.remove('absolute', 'z-50', 'w-40', 'mt-32', 'right-4', 'shadow-2xl', 'border-green-500/50');
+                select.classList.remove('absolute', 'z-50', 'w-full', 'top-full', 'mt-2');
             }
         });
     }
 
     setupFilter('search-local', 'select-local', 'display-local');
     setupFilter('search-visitor', 'select-visitor', 'display-visitor');
+
+    document.getElementById('btn-reverse').addEventListener('click', function() {
+        const localInp = document.getElementById('search-local');
+        const visitInp = document.getElementById('search-visitor');
+        const localDisp = document.getElementById('display-local');
+        const visitDisp = document.getElementById('display-visitor');
+
+        const tempInp = localInp.value;
+        localInp.value = visitInp.value;
+        visitInp.value = tempInp;
+
+        const tempDispText = localDisp.innerText;
+        const tempDispClass = localDisp.className;
+        
+        localDisp.innerText = visitDisp.innerText;
+        localDisp.className = visitDisp.className;
+        
+        visitDisp.innerText = tempDispText;
+        visitDisp.className = tempDispClass;
+    });
 });
 </script>
 {% endblock %}
