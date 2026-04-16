@@ -1,6 +1,8 @@
 from django.views import generic
 from .services import fetch_competitions, fetch_teams
 
+from .services import fetch_competitions, fetch_scorers
+
 class LeaguesView(generic.TemplateView):
     template_name = "tracker/leagues.html"
     
@@ -18,15 +20,21 @@ class LeaguesView(generic.TemplateView):
         # 3. Gestionamos selección (Funcionalidad F1) 
         selected_league_id = self.request.GET.get('league')
         selected_league = None
+        scorers = []
         
         if selected_league_id:
             for league in leagues:
                 if str(league['id']) == selected_league_id:
                     selected_league = league
+                    season = selected_league['currentSeason']['startDate'][:4]
+
+                    scorers = fetch_scorers(league['code'], season)
+
                     break
             
             # 4. Si hay liga, traemos equipos (Funcionalidad F2) 
             context['teams'] = fetch_teams(selected_league_id)
         
         context['selected_league'] = selected_league
+        context['scorers'] = scorers
         return context

@@ -4,5 +4,5 @@ from . import views
 
 app_name = "tracker"
 urlpatterns = [
-    path("leagues/", views.LeaguesView.as_view(), name="leagues"),
+    path("home/", views.LeaguesView.as_view(), name="home"),
 ]

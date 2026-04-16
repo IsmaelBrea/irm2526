@@ -42,3 +42,20 @@ def fetch_teams(league_id):
     except Exception as e:
         print(f"Error al consultar equipos: {e}")
         return []
+    
+def fetch_scorers(league_code, season=None):
+    """
+    Obtiene los máximos goleadores de una competición
+    """
+    url = f"https://api.football-data.org/v4/competitions/{league_code}/scorers"
+    headers = {"X-Auth-Token": token_pool.get_token()}
+    
+    try:
+        response = requests.get(url, headers=headers)
+        data = response.json()
+        if 'scorers' in data:
+            return data['scorers']
+        return []
+    except Exception as e:
+        print(f"Error: {e}")
+        return []
