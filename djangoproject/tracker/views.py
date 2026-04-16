@@ -3,7 +3,7 @@ from .services import fetch_competitions, fetch_teams
 
 from .services import fetch_competitions, fetch_scorers
 
-class LeaguesView(generic.TemplateView):
+class HomeView(generic.TemplateView):
     template_name = "tracker/index.html"
     
     def get_context_data(self, **kwargs):
