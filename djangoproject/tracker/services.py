@@ -14,25 +14,31 @@ class APITokenPool:
             return token
 
 # API Keys
-TOKEN_LIST = ["6728e2d7b5c06562344b779385eeed84", "096e2a18cca2f5be6feaa985b556f679"]
+TOKEN_LIST = ["0ba4247e00a64c0cab971f5c657d831f", "ff76024905da41f48054d031227c3804"]
 token_pool = APITokenPool(TOKEN_LIST)
+BASE_URL = "https://api.football-data.org/v4/"
     
-
+# Obtener ligas 
 def fetch_competitions():
-    """
-    Obtiene competiciones de football-data.org
-    """
-    url = "https://api.football-data.org/v4/competitions/"
-    headers = {"X-Auth-Token": "0ba4247e00a64c0cab971f5c657d831f"}
-    
+    url = f"{BASE_URL}competitions/"
+    headers = {"X-Auth-Token": token_pool.get_token()}
     try:
         response = requests.get(url, headers=headers)
         data = response.json()
-        
-        # Extrae las competiciones
-        if 'competitions' in data:
-            return data['competitions']
-        return []
+        return data.get('competitions', [])
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error en competiciones: {e}")
+        return []
+
+# Obtener equipos de la liga seleccionada
+def fetch_teams(league_id):
+    url = f"{BASE_URL}competitions/{league_id}/teams"
+    headers = {"X-Auth-Token": token_pool.get_token()}
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        return data.get('teams', [])
+    except Exception as e:
+        print(f"Error al consultar equipos: {e}")
         return []
