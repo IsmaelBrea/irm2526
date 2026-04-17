@@ -60,3 +60,24 @@ def fetch_scorers(league_code, season=None):
         print(f"Error: {e}")
         return []
     
+
+def fetch_standings(league_code, season):
+    """
+    Obtiene la clasificación actual de una competición
+    """
+    url = f"https://api.football-data.org/v4/competitions/{league_code}/standings"
+    headers = {"X-Auth-Token": token_pool.get_token()}
+    params = {'season': season}
+    
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        data = response.json()
+        
+        # Obtener la tabla del primer stage (REGULAR_SEASON)
+        if 'standings' in data and len(data['standings']) > 0:
+            return data['standings'][0].get('table', [])
+        return []
+    except Exception as e:
+        print(f"Error al consultar clasificación: {e}")
+        return []

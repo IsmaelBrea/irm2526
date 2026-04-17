@@ -1,5 +1,5 @@
 from django.views import generic
-from .services import fetch_competitions, fetch_teams, fetch_scorers
+from .services import fetch_competitions, fetch_teams, fetch_scorers, fetch_standings
 
 class HomeView(generic.TemplateView):
     template_name = "tracker/index.html"
@@ -56,6 +56,7 @@ class RendIndividualView(generic.TemplateView):
         selected_league_id = self.request.GET.get('league')
         selected_league = None
         scorers = []
+        standings = []
         
         if selected_league_id:
             for league in leagues:
@@ -64,6 +65,8 @@ class RendIndividualView(generic.TemplateView):
                     season = selected_league['currentSeason']['startDate'][:4]
 
                     scorers = fetch_scorers(league['code'], season)
+                    standings = fetch_standings(league['code'], season)
+
                     break
             
             # Si hay liga, traemos equipos (Funcionalidad F2) 
@@ -71,5 +74,5 @@ class RendIndividualView(generic.TemplateView):
         
         context['selected_league'] = selected_league
         context['scorers'] = scorers
-
+        context['standings'] = standings
         return context
