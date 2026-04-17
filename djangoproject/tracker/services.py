@@ -59,3 +59,4 @@ def fetch_scorers(league_code, season=None):
     except Exception as e:
         print(f"Error: {e}")
         return []
+    
