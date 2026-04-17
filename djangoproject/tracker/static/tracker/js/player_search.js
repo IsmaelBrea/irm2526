@@ -70,23 +70,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function selectPlayer(player) {
-        searchInput.value = player.name;
-        dropdown.classList.add('hidden');
+    searchInput.value = player.name;
+    dropdown.classList.add('hidden');
 
-        document.getElementById('stat-position').textContent = player.position || 'N/A';
-        document.getElementById('stat-shirt').textContent = `#${player.shirtNumber || 'N/A'}`;
-        document.getElementById('stat-value').textContent = player.marketValue 
-            ? '$' + (player.marketValue / 1000000).toFixed(1) + 'M' 
-            : 'N/A';
-        document.getElementById('stat-nationality').textContent = player.nationality || 'N/A';
+    // Llenar información
+    document.getElementById('info-name').textContent = `${player.firstName || ''} ${player.lastName || player.name}`.trim();
+    document.getElementById('info-dob').textContent = player.dateOfBirth || 'N/A';
+    document.getElementById('info-position').textContent = player.position || 'N/A';
+    document.getElementById('info-nationality').textContent = player.nationality || 'N/A';
+    document.getElementById('info-team').textContent = player.team_name || 'N/A';
 
-        document.getElementById('info-name').textContent = `${player.firstName || ''} ${player.lastName || player.name}`.trim();
-        document.getElementById('info-dob').textContent = player.dateOfBirth || 'N/A';
-        document.getElementById('info-team').textContent = player.team_name || 'N/A';
-
-        statsContainer.classList.remove('hidden');
-        infoContainer.classList.remove('hidden');
-    }
+    statsContainer.classList.remove('hidden');
+    infoContainer.classList.remove('hidden');
+}
 
         // Focus en el input activa el filtro aunque esté vacío
     searchInput.addEventListener('focus', filterPlayers);
