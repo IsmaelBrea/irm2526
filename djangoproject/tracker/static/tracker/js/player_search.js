@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const dropdown = document.getElementById('player-dropdown');
     const statsContainer = document.getElementById('stats-container');
     const infoContainer = document.getElementById('info-container');
-
+    const trajectoryContainer = document.getElementById('trajectory-container');
     // Llenar select de equipos únicos
     const uniqueTeams = [...new Set(players.map(p => p.team_name))].sort();
     uniqueTeams.forEach(team => {
@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     statsContainer.classList.remove('hidden');
     infoContainer.classList.remove('hidden');
+    trajectoryContainer.classList.remove('hidden');
 }
 
         // Focus en el input activa el filtro aunque esté vacío

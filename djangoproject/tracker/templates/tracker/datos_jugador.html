@@ -25,16 +25,7 @@
     </div>
 </div>
         {{ players|json_script:"playersData" }}
-
-        <!-- Estadísticas (fijas) -->
-<div id="stats-container" class="hidden bg-slate-900/50 border border-slate-800 rounded-lg p-6">
-    <h3 class="text-lg font-bold text-green-500 uppercase tracking-wider mb-4">Estadísticas</h3>
-    <div class="grid grid-cols-1 gap-4">
-        <div class="bg-slate-800/50 p-4 rounded">
-            <p class="text-slate-400 text-xs">---</p>
-        </div>
-    </div>
-</div>
+<div class="grid grid-cols-2 gap-6">
 
 <!-- Información (fija) -->
 <div id="info-container" class="hidden bg-slate-900/50 border border-slate-800 rounded-lg p-6">
@@ -58,8 +49,26 @@
         </div>
         <div class="bg-slate-800/50 p-4 rounded">
             <p class="text-slate-400 text-xs">Equipo Actual</p>
-            <p class="text-green-400 font-semibold" id="info-team">-</p>
+            <p class="text-white font-semibold" id="info-team">-</p>
         </div>
+    </div>
+</div>
+        <!-- Estadísticas (fijas) -->
+<div id="stats-container" class="hidden bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+    <h3 class="text-lg font-bold text-green-500 uppercase tracking-wider mb-4">Estadísticas</h3>
+    <div class="grid grid-cols-1 gap-4">
+        <div class="bg-slate-800/50 p-4 rounded">
+            <p class="text-slate-400 text-xs">---</p>
+        </div>
+    </div>
+</div>
+
+</div>
+<!-- Trayectoria (fija) -->
+<div id="trajectory-container" class="hidden bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+    <h3 class="text-lg font-bold text-green-500 uppercase tracking-wider mb-4">Trayectoria</h3>
+    <div class="space-y-3">
+        <!-- Contenido de trayectoria irá aquí -->
     </div>
 </div>
 
