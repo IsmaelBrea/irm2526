@@ -1,8 +1,8 @@
-[//]: # (TeamName: Your App Name)
-[//]: # (Member1: Mi Nombre Apellido::nombre.apellido1@udc.es)
-[//]: # (Member2: Team Member 2::t.member@udc.es)
-[//]: # (Member3: Y el Numero 3::numero.tres@udc.es)
-[//]: # (Teacher: AR)
+[//]: # (TeamName: IRM Performance Tracker)
+[//]: # (Member1: Ismael Brea Arias::ismael.brea@udc.es)
+[//]: # (Member2: Ruben González Ouzounis::ruben.gonzalez.ouzounis@udc.es)
+[//]: # (Member3: Manuel Valiña Pérez::manuel.valina.perez@udc.es)
+[//]: # (Teacher: Alonso Rodríguez Iglesias)
 <!-- Si quereis hacerle un logo (con IA o como prefirais) ya es lucirse y queda muy bien :) -->
 <img width="300" src="https://github.com/user-attachments/assets/bdbafec2-f468-4623-9175-80f9ed86fd1c" align="right"/>
 
