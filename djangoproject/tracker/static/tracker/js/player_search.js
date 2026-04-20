@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${crest}
                     <div>
                         <p class="text-white font-semibold text-sm">${player.name}</p>
-                        <p class="text-slate-400 text-xs">${player.position || 'N/A'} • ${player.team_name}</p>
+                        <p class="text-slate-400 text-xs">${player.position || 'N/A'} - ${player.team_name}</p>
                     </div>
                 `;
                 
@@ -78,8 +78,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('info-dob').textContent = player.dateOfBirth || 'N/A';
     document.getElementById('info-position').textContent = player.position || 'N/A';
     document.getElementById('info-nationality').textContent = player.nationality || 'N/A';
-    document.getElementById('info-team').textContent = player.team_name || 'N/A';
-
+document.getElementById('info-team').textContent = player.team_name || 'N/A';
+const crestDiv = document.getElementById('info-team-crest');
+const crest = player.team_crest 
+    ? `<img src="${player.team_crest}" class="w-6 h-6 object-contain">` 
+    : '';
+crestDiv.innerHTML = crest;
     statsContainer.classList.remove('hidden');
     infoContainer.classList.remove('hidden');
     trajectoryContainer.classList.remove('hidden');
