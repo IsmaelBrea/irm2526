@@ -1,5 +1,4 @@
 from django.urls import path
-
 from . import views
 
 app_name = "tracker"
@@ -10,5 +9,6 @@ urlpatterns = [
         views.compare_teams,
         name="compare_teams",
     ),
-    path("rend-individual", views.RendIndividualView.as_view(), name="league-detail"),
+    path("rend-individual/", views.RendIndividualView.as_view(), name="league-detail"),
+    path("datos-jugador/", views.DatosJugadorView.as_view(), name="datos-jugador"),
 ]

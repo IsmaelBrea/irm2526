@@ -186,3 +186,28 @@ def fetch_standings(league_code, season):
     except Exception as e:
         print(f"Error al consultar clasificación: {e}")
         return []
+
+
+def fetch_players_by_league(league_id):
+    """Obtiene todos los jugadores de todos los equipos de una liga"""
+    teams = fetch_teams(league_id)
+    players = []
+
+    for team in teams:
+        team_id = team.get("id")
+        url = f"{BASE_URL}teams/{team_id}"
+        headers = {"X-Auth-Token": token_pool.get_token()}
+
+        try:
+            response = requests.get(url, headers=headers)
+            team_data = response.json()
+            squad = team_data.get("squad", [])
+
+            for player in squad:
+                player["team_name"] = team.get("name")
+                player["team_crest"] = team.get("crest")
+                players.append(player)
+        except Exception as e:
+            print(f"Error fetching team {team_id}: {e}")
+
+    return players

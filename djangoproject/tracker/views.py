@@ -4,10 +4,15 @@ from .services import (
     fetch_competitions,
     fetch_teams,
     fetch_scorers,
+    fetch_competitions,
+    fetch_teams,
+    fetch_scorers,
+    fetch_standings,
     fetch_performance_data,
+    fetch_standings,
+    fetch_players_by_league,
     calculate_irm_probability,
 )
-from .services import fetch_competitions, fetch_teams, fetch_scorers, fetch_standings
 
 
 class HomeView(generic.TemplateView):
@@ -106,4 +111,32 @@ class RendIndividualView(generic.TemplateView):
         context["selected_league"] = selected_league
         context["scorers"] = scorers
         context["standings"] = standings
+        return context
+
+
+class DatosJugadorView(generic.TemplateView):
+    template_name = "tracker/datos_jugador.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        all_leagues = fetch_competitions()
+        target_ids = [2001, 2000, 2021, 2014, 2019, 2002, 2015]
+        leagues = [league for league in all_leagues if league["id"] in target_ids]
+        context["leagues"] = leagues
+
+        selected_league_id = self.request.GET.get("league")
+        selected_league = None
+        players = []
+
+        if selected_league_id:
+            for league in leagues:
+                if str(league["id"]) == selected_league_id:
+                    selected_league = league
+                    context["teams"] = fetch_teams(selected_league_id)
+                    players = fetch_players_by_league(selected_league_id)
+                    break
+
+        context["selected_league"] = selected_league
+        context["players"] = players
         return context
