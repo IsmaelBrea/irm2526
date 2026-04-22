@@ -2,6 +2,10 @@ import requests
 import threading
 import pandas as pd
 import numpy as np
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class APITokenPool:
@@ -18,9 +22,11 @@ class APITokenPool:
 
 
 # API Keys
-TOKEN_LIST = ["0ba4247e00a64c0cab971f5c657d831f", "ff76024905da41f48054d031227c3804"]
+API_TOKENS_ENV = os.getenv("API_TOKENS", "")
+TOKEN_LIST = API_TOKENS_ENV.split(",") if API_TOKENS_ENV else []
 token_pool = APITokenPool(TOKEN_LIST)
-BASE_URL = "https://api.football-data.org/v4/"
+BASE_URL = os.getenv("BASE_URL", "https://api.football-data.org/v4/")
+
 
 # Obtener ligas
 def fetch_competitions():
