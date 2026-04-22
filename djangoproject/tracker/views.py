@@ -1,8 +1,12 @@
 from django.views import generic
-from .services import fetch_competitions, fetch_teams
-
-from .services import fetch_competitions, fetch_scorers
-
+from django.http import JsonResponse
+from .services import (
+    fetch_competitions, 
+    fetch_teams, 
+    fetch_scorers, 
+    fetch_performance_data, 
+    calculate_irm_probability
+)
 class HomeView(generic.TemplateView):
     template_name = "tracker/index.html"
     
@@ -38,3 +42,29 @@ class HomeView(generic.TemplateView):
         context['selected_league'] = selected_league
         context['scorers'] = scorers
         return context
+
+def compare_teams(request, league_id, team_a_id, team_b_id):
+    """
+    Vista que une el Service (API) con el Analytics (Pandas)
+    Responde en formato JSON para que el JS actualice la interfaz sin recargar.
+    """
+    try:
+        # Obtenemos datos masivos de la API
+        raw_data = fetch_performance_data(team_a_id, team_b_id, league_id)
+        
+        # Procesa con Pandas
+        analysis_results = calculate_irm_probability(raw_data, team_a_id, team_b_id)
+        
+        # Respuesta de éxito
+        return JsonResponse({
+            'status': 'success',
+            'data': analysis_results
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f"Error en el motor IRM Engine: {str(e)}"
+        }, status=500)
+
+        
