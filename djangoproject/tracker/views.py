@@ -1,7 +1,9 @@
 from django.views import generic
 from django.http import JsonResponse
+from urllib3 import request
 from .services import (
     fetch_competitions,
+    fetch_player_matches,
     fetch_teams,
     fetch_scorers,
     fetch_competitions,
@@ -140,3 +142,26 @@ class DatosJugadorView(generic.TemplateView):
         context["selected_league"] = selected_league
         context["players"] = players
         return context
+
+
+def get_player_stats(request):
+    """Retorna estadísticas de partidos de un jugador en JSON"""
+    player_id = request.GET.get("player_id")
+
+    if not player_id:
+        return JsonResponse(
+            {"status": "error", "message": "player_id required"}, status=400
+        )
+
+    try:
+        data = fetch_player_matches(player_id)
+
+        if data is None:
+            return JsonResponse(
+                {"status": "error", "message": "No se pudieron obtener los datos"},
+                status=500,
+            )
+
+        return JsonResponse({"status": "success", "data": data})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)

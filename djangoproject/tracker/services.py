@@ -217,3 +217,18 @@ def fetch_players_by_league(league_id):
             print(f"Error fetching team {team_id}: {e}")
 
     return players
+
+
+def fetch_player_matches(player_id):
+    """Obtiene los últimos 5 partidos de un jugador con sus agregaciones de estadísticas"""
+    url = f"{BASE_URL}persons/{player_id}/matches?limit=5"
+    headers = {"X-Auth-Token": token_pool.get_token(), "X-Unfold-Goals": "true"}
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        return data
+    except Exception as e:
+        print(f"Error fetching player matches: {e}")
+        return None

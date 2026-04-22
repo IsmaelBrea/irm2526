@@ -78,15 +78,38 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('info-dob').textContent = player.dateOfBirth || 'N/A';
     document.getElementById('info-position').textContent = player.position || 'N/A';
     document.getElementById('info-nationality').textContent = player.nationality || 'N/A';
-document.getElementById('info-team').textContent = player.team_name || 'N/A';
-const crestDiv = document.getElementById('info-team-crest');
-const crest = player.team_crest 
-    ? `<img src="${player.team_crest}" class="w-6 h-6 object-contain">` 
-    : '';
-crestDiv.innerHTML = crest;
+    document.getElementById('info-team').textContent = player.team_name || 'N/A';
+    
+    const crestDiv = document.getElementById('info-team-crest');
+    const crest = player.team_crest 
+        ? `<img src="${player.team_crest}" class="w-6 h-6 object-contain">` 
+        : '';
+    crestDiv.innerHTML = crest;
+
     statsContainer.classList.remove('hidden');
     infoContainer.classList.remove('hidden');
     trajectoryContainer.classList.remove('hidden');
+
+        //carga estadísticas de partidos de un jugador concreto
+    if (player.id) {
+        fetch(`/tracker/api/player-stats/?player_id=${player.id}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success' && data.data.aggregations) {
+                    const agg = data.data.aggregations;
+                    document.getElementById('stat-matches').textContent = agg.matchesOnPitch || 0;
+                    document.getElementById('stat-starting').textContent = agg.startingXI || 0;
+                    document.getElementById('stat-minutes').textContent = agg.minutesPlayed || 0;
+                    document.getElementById('stat-goals').textContent = agg.goals || 0;
+                    document.getElementById('stat-penalties').textContent = agg.penalties || 0;
+                    document.getElementById('stat-assists').textContent = agg.assists || 0;
+                    document.getElementById('stat-yellow').textContent = agg.yellowCards || 0;
+                    document.getElementById('stat-red').textContent = agg.redCards || 0;
+                    
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
 }
 
         // Focus en el input activa el filtro aunque esté vacío
