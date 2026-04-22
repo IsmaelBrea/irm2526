@@ -1,5 +1,7 @@
 import requests
 import threading
+import pandas as pd
+import numpy as np
 
 class APITokenPool:
     def __init__(self, tokens):
@@ -42,7 +44,100 @@ def fetch_teams(league_id):
     except Exception as e:
         print(f"Error al consultar equipos: {e}")
         return []
+
+# Obtiene datos de ambos equipos 
+def fetch_performance_data(team_a_id, team_b_id, league_id):
+    """
+    Recopila los datos numéricos y deportivos para la comparativa de Pandas
+    """
+    headers = {"X-Auth-Token": token_pool.get_token()}
     
+    # CLASIFICACIÓN (Para comparar posición, puntos y diferencia de goles actual)
+    url_standings = f"{BASE_URL}competitions/{league_id}/standings"
+    
+    # PARTIDOS (Para calcular medias de goles y rachas)
+    url_matches_a = f"{BASE_URL}teams/{team_a_id}/matches?status=FINISHED"
+    url_matches_b = f"{BASE_URL}teams/{team_b_id}/matches?status=FINISHED"
+    
+    # DUELOS DIRECTOS (H2H)
+    url_h2h = f"{BASE_URL}teams/{team_a_id}/matches?competitors={team_b_id}&status=FINISHED"
+
+    raw_data = {
+        'standings': [],
+        'matches_a': [],
+        'matches_b': [],
+        'h2h': []
+    }
+
+    try:
+        # Peticiones en paralelo o secuenciales usando el pool de tokens
+        res_s = requests.get(url_standings, headers=headers)
+        res_ma = requests.get(url_matches_a, headers=headers)
+        res_mb = requests.get(url_matches_b, headers=headers)
+        res_h2h = requests.get(url_h2h, headers=headers)
+
+        if res_s.status_code == 200:
+            # Extraemos solo la tabla general
+            raw_data['standings'] = res_s.json().get('standings', [{}])[0].get('table', [])
+            
+        if res_ma.status_code == 200:
+            raw_data['matches_a'] = res_ma.json().get('matches', [])
+            
+        if res_mb.status_code == 200:
+            raw_data['matches_b'] = res_mb.json().get('matches', [])
+            
+        if res_h2h.status_code == 200:
+            raw_data['h2h'] = res_h2h.json().get('matches', [])
+
+    except Exception as e:
+        print(f"Error en IRM Engine - Data Fetch: {e}")
+        
+    return raw_data
+
+
+# Usar pandas para análisis de datos
+def calculate_irm_probability(raw_data, team_a_id, team_b_id):
+    """
+    Procesa los datos con Pandas para calcular porcentajes de victoria
+    """
+    try:
+        # Clasificación
+        df_standings = pd.DataFrame(raw_data['standings'])
+        stats_a = df_standings[df_standings['team'].apply(lambda x: x['id']) == int(team_a_id)].iloc[0]
+        stats_b = df_standings[df_standings['team'].apply(lambda x: x['id']) == int(team_b_id)].iloc[0]
+
+        # Goles (Últimos partidos)
+        def get_avg_goals(matches):
+            if not matches: return 0
+            df = pd.DataFrame(matches)
+            # Extraer goles totales del partido
+            df['total_goals'] = df['score'].apply(lambda x: x['fullTime']['home'] + x['fullTime']['away'])
+            return df['total_goals'].mean()
+
+        avg_a = get_avg_goals(raw_data['matches_a'])
+        avg_b = get_avg_goals(raw_data['matches_b'])
+
+        # Pesos del Algoritmo IRM (F17)
+        # Puntos (40%) + Goles (40%) + Factor Campo/Azar (20%)
+        score_a = (stats_a['points'] * 0.4) + (avg_a * 10 * 0.4) + 10 # Base neutral
+        score_b = (stats_b['points'] * 0.4) + (avg_b * 10 * 0.4) + 10
+
+        total = score_a + score_b
+        return {
+            'team_a': round((score_a / total) * 100, 1),
+            'team_b': round((score_b / total) * 100, 1),
+            'raw_stats': {
+                'points_a': int(stats_a['points']),
+                'points_b': int(stats_b['points']),
+                'goals_avg_a': round(avg_a, 2),
+                'goals_avg_b': round(avg_b, 2)
+            }
+        }
+    except Exception as e:
+        print(f"Error Analytics: {e}")
+        return {'team_a': 50, 'team_b': 50}
+
+
 def fetch_scorers(league_code, season=None):
     """
     Obtiene los máximos goleadores de una competición
@@ -59,3 +154,5 @@ def fetch_scorers(league_code, season=None):
     except Exception as e:
         print(f"Error: {e}")
         return []
+
+
