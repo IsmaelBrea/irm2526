@@ -106,52 +106,244 @@ def fetch_performance_data(team_a_id, team_b_id, league_id):
 
 # Usar pandas para análisis de datos
 def calculate_irm_probability(raw_data, team_a_id, team_b_id):
-    """
-    Procesa los datos con Pandas para calcular porcentajes de victoria
-    """
     try:
-        # Clasificación
+        t_a_id, t_b_id = int(team_a_id), int(team_b_id)
         df_standings = pd.DataFrame(raw_data["standings"])
+
+        # Selección de filas en la clasificación
         stats_a = df_standings[
-            df_standings["team"].apply(lambda x: x["id"]) == int(team_a_id)
+            df_standings["team"].apply(lambda x: x["id"]) == t_a_id
         ].iloc[0]
         stats_b = df_standings[
-            df_standings["team"].apply(lambda x: x["id"]) == int(team_b_id)
+            df_standings["team"].apply(lambda x: x["id"]) == t_b_id
         ].iloc[0]
 
-        # Goles (Últimos partidos)
-        def get_avg_goals(matches):
+        # Función auxiliar mejorada para obtener estadísticas y el DataFrame procesado
+        def process_team_matches(matches, target_id):
             if not matches:
-                return 0
+                return None, {
+                    "avg_f": 0,
+                    "avg_c": 0,
+                    "cs": 0,
+                    "form_pts": 0,
+                    "form_str": "",
+                    "eff": 0,
+                }
+
             df = pd.DataFrame(matches)
-            # Extraer goles totales del partido
-            df["total_goals"] = df["score"].apply(
-                lambda x: x["fullTime"]["home"] + x["fullTime"]["away"]
+            df["is_home"] = df["homeTeam"].apply(lambda x: x["id"] == target_id)
+
+            # Goles Favor y Contra
+            df["gf"] = df.apply(
+                lambda r: r["score"]["fullTime"]["home"]
+                if r["is_home"]
+                else r["score"]["fullTime"]["away"],
+                axis=1,
             )
-            return df["total_goals"].mean()
+            df["gc"] = df.apply(
+                lambda r: r["score"]["fullTime"]["away"]
+                if r["is_home"]
+                else r["score"]["fullTime"]["home"],
+                axis=1,
+            )
 
-        avg_a = get_avg_goals(raw_data["matches_a"])
-        avg_b = get_avg_goals(raw_data["matches_b"])
+            # Porterías a cero
+            cs = int(df[df["gc"] == 0].shape[0])
 
-        # Pesos del Algoritmo IRM (F17)
-        # Puntos (40%) + Goles (40%) + Factor Campo/Azar (20%)
-        score_a = (stats_a["points"] * 0.4) + (avg_a * 10 * 0.4) + 10  # Base neutral
-        score_b = (stats_b["points"] * 0.4) + (avg_b * 10 * 0.4) + 10
+            # Estado de forma (últimos 5)
+            def calc_pts(r):
+                win = r["score"]["winner"]
+                if win == "DRAW":
+                    return (1, "D")
+                if (r["is_home"] and win == "HOME_TEAM") or (
+                    not r["is_home"] and win == "AWAY_TEAM"
+                ):
+                    return (3, "W")
+                return (0, "L")
+
+            # Tomamos los 5 últimos partidos (los más recientes)
+            last_5_matches = df.head(5)
+            results = last_5_matches.apply(calc_pts, axis=1)
+            pts_5 = sum([x[0] for x in results])
+            str_5 = "".join([x[1] for x in results])
+
+            # Efectividad
+            if len(df) > 0:
+                wins = df.apply(
+                    lambda r: 1
+                    if (r["is_home"] and r["score"]["winner"] == "HOME_TEAM")
+                    or (not r["is_home"] and r["score"]["winner"] == "AWAY_TEAM")
+                    else 0,
+                    axis=1,
+                ).sum()
+                eff = round((wins / len(df)) * 100, 1)
+            else:
+                eff = 0
+
+            stats = {
+                "avg_f": round(df["gf"].mean(), 2),
+                "avg_c": round(df["gc"].mean(), 2),
+                "cs": cs,
+                "form_pts": pts_5,
+                "form_str": str_5,
+                "eff": eff,
+            }
+            return df, stats
+
+        # Procesamos ambos equipos
+        df_a, m_a = process_team_matches(raw_data["matches_a"], t_a_id)
+        df_b, m_b = process_team_matches(raw_data["matches_b"], t_b_id)
+
+        # ALGORITMO DE PROBABILIDAD: 35% puntos liga + 25% ataque + 15% defensa + 15% forma reciente + 5% porterías a cero + 5% efectividad
+        def team_score(stats, m):
+            return (
+                (stats["points"] * 0.35)
+                + (m["avg_f"] * 12 * 0.25)
+                + ((3 - m["avg_c"]) * 10 * 0.15)
+                + (m["form_pts"] * 0.15)
+                + (m["cs"] * 0.05)
+                + (m["eff"] * 0.05)
+            )
+
+        score_a = team_score(stats_a, m_a)
+        score_b = team_score(stats_b, m_b)
+
+        # Bonus por posición (mejora real del modelo)
+        score_a += (20 - stats_a["position"]) * 0.2
+        score_b += (20 - stats_b["position"]) * 0.2
 
         total = score_a + score_b
-        return {
-            "team_a": round((score_a / total) * 100, 1),
-            "team_b": round((score_b / total) * 100, 1),
-            "raw_stats": {
-                "points_a": int(stats_a["points"]),
-                "points_b": int(stats_b["points"]),
-                "goals_avg_a": round(avg_a, 2),
-                "goals_avg_b": round(avg_b, 2),
+
+        # Evitar división rara
+        if total <= 0:
+            prob_a = 50
+            prob_b = 50
+        else:
+            prob_a = round((score_a / total) * 100, 1)
+            prob_b = round((score_b / total) * 100, 1)
+
+        # ── DATOS PARA GRÁFICO DE LÍNEAS ──
+        def build_form_chart(df, target_id):
+            if df is None or df.empty:
+                return []
+
+            df["utcDate"] = pd.to_datetime(df["utcDate"])
+            last5 = (
+                df.sort_values("utcDate", ascending=False)
+                .head(5)
+                .iloc[::-1]
+                .reset_index(drop=True)
+            )
+
+            result = []
+            for i, row in last5.iterrows():
+                home = row["homeTeam"]["name"]
+                away = row["awayTeam"]["name"]
+                gf = row["gf"]
+                gc = row["gc"]
+                win = row["score"]["winner"]
+                is_home = row["is_home"]
+
+                if win == "DRAW":
+                    pts = 1
+                elif (is_home and win == "HOME_TEAM") or (
+                    not is_home and win == "AWAY_TEAM"
+                ):
+                    pts = 3
+                else:
+                    pts = 0
+
+                result.append(
+                    {
+                        "jornada": f"J{i + 1}",
+                        "rival": away if is_home else home,
+                        "score": f"{int(gf)}-{int(gc)}",
+                        "pts": pts,
+                    }
+                )
+
+            return result
+
+        form_a = build_form_chart(df_a, t_a_id)
+        form_b = build_form_chart(df_b, t_b_id)
+
+        # ── DATOS PARA GRÁFICO DE BARRAS ──
+        bar_metrics = [
+            {
+                "metrica": "Puntos Liga",
+                "val_a": int(stats_a["points"]),
+                "val_b": int(stats_b["points"]),
             },
+            {
+                "metrica": "Goles Favor (AVG)",
+                "val_a": m_a["avg_f"],
+                "val_b": m_b["avg_f"],
+            },
+            {
+                "metrica": "Goles Contra (AVG)",
+                "val_a": m_a["avg_c"],
+                "val_b": m_b["avg_c"],
+            },
+            {"metrica": "Porterías a cero", "val_a": m_a["cs"], "val_b": m_b["cs"]},
+            {"metrica": "Efectividad (%)", "val_a": m_a["eff"], "val_b": m_b["eff"]},
+        ]
+
+        # Construcción de la tabla comparativa
+        return {
+            "team_a_prob": prob_a,
+            "team_b_prob": prob_b,
+            "comparison_table": [
+                {
+                    "metrica": "Posición",
+                    "val_a": f"{stats_a['position']}º",
+                    "val_b": f"{stats_b['position']}º",
+                },
+                {
+                    "metrica": "Puntos Liga",
+                    "val_a": int(stats_a["points"]),
+                    "val_b": int(stats_b["points"]),
+                },
+                {
+                    "metrica": "Goles a Favor (AVG)",
+                    "val_a": f"{int(df_a['gf'].sum()) if df_a is not None else 0} ({m_a['avg_f']})",
+                    "val_b": f"{int(df_b['gf'].sum()) if df_b is not None else 0} ({m_b['avg_f']})",
+                },
+                {
+                    "metrica": "Goles en Contra (AVG)",
+                    "val_a": f"{int(df_a['gc'].sum()) if df_a is not None else 0} ({m_a['avg_c']})",
+                    "val_b": f"{int(df_b['gc'].sum()) if df_b is not None else 0} ({m_b['avg_c']})",
+                },
+                {
+                    "metrica": "Porterías a cero",
+                    "val_a": m_a["cs"],
+                    "val_b": m_b["cs"],
+                },
+                {
+                    "metrica": "Forma (Últimos 5P)",
+                    "val_a": f"{m_a['form_pts']}pts",
+                    "val_b": f"{m_b['form_pts']}pts",
+                },
+                {
+                    "metrica": "Efectividad",
+                    "val_a": f"{m_a['eff']}%",
+                    "val_b": f"{m_b['eff']}%",
+                },
+            ],
+            "form_a": form_a,
+            "form_b": form_b,
+            "bar_metrics": bar_metrics,
         }
+
     except Exception as e:
         print(f"Error Analytics: {e}")
-        return {"team_a": 50, "team_b": 50}
+        return {
+            "team_a_prob": 50,
+            "team_b_prob": 50,
+            "comparison_table": [],
+            "form_a": [],
+            "form_b": [],
+            "bar_metrics": [],
+        }
 
 
 def fetch_scorers(league_code, season=None):

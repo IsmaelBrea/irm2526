@@ -1,216 +1,183 @@
 {% extends "tracker/base.html" %}
 {% load static %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'tracker/css/index.css' %}">
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+{% endblock %}
+
 {% block content %}
-<div class="w-full space-y-8">
+<div class="w-full space-y-6"> 
     {% if selected_league %}
-        <div class="flex items-center gap-6 pb-6 border-b border-slate-800 mb-8 w-full">
+        {# ── CABECERA LIGA ── #}
+        <div class="flex items-center gap-6 pb-4 border-b border-slate-800 mb-6 w-full"> 
             {% if selected_league.emblem %}
-                <img src="{{ selected_league.emblem }}" class="w-16 h-16 object-contain">
+                <img src="{{ selected_league.emblem }}" class="w-12 h-12 object-contain"> 
             {% endif %}
             <div>
-                <h2 class="text-4xl font-black text-white tracking-tighter uppercase">{{ selected_league.name }}</h2>
-                <p class="text-green-500 font-mono text-sm uppercase tracking-[0.2em]">{{ selected_league.area.name }}</p>
+                <h2 class="text-3xl font-black text-white tracking-tighter uppercase">{{ selected_league.name }}</h2>
+                <p class="text-green-500 font-mono text-[10px] uppercase tracking-[0.2em]">{{ selected_league.area.name }}</p>
             </div>
         </div>
 
-        <div class="flex flex-row items-stretch gap-6 w-full">
-            <div class="flex-1 min-h-[200px] p-8 bg-slate-900/50 border border-slate-800 rounded-[2.5rem] space-y-6 relative flex flex-col justify-center">
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Local Team</p>
-                <div class="space-y-4">
-                    <div class="flex items-center gap-2 relative">
+        {# ── SELECTORES ── #}
+        <div class="flex flex-col lg:flex-row items-stretch gap-4 w-full"> 
+            {# Local #}
+            <div class="flex-1 min-h-[150px] p-6 bg-slate-900/50 border border-slate-800 rounded-[2rem] space-y-4 relative flex flex-col justify-center">
+                <p class="text-[10px] font-bold text-white-500 uppercase tracking-widest">Equipo Local</p>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2 relative"> 
                         <div class="relative flex-1">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="h-3 w-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
                             </div>
                             <input type="text" id="search-local" placeholder="Buscar equipo..." autocomplete="off"
-                                   class="w-full bg-slate-800 border border-slate-700 rounded-2xl pl-12 pr-4 py-4 text-sm focus:border-green-500 outline-none text-slate-300 transition-all">
+                                   class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-xs focus:border-green-500 outline-none text-slate-300 transition-all">
                         </div>
-                        <select id="select-local" size="1"
-                                class="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-4 text-sm focus:border-green-500 outline-none cursor-pointer text-green-500 font-bold w-16 text-center">
-                            <option value="">+</option>
-                            {% for team in teams %}
-                                <option value="{{ team.id }}">{{ team.name }}</option>
-                            {% endfor %}
-                        </select>
+                        <div class="relative" id="dropdown-wrapper-local">
+                            <button id="btn-open-local" type="button"
+                                    class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-3 text-xs text-green-500 font-bold w-14 text-center hover:border-green-500 transition-all">
+                                +
+                            </button>
+                            <div id="dropdown-local" class="team-dropdown hidden absolute right-0 top-full mt-1 z-50 w-56 bg-slate-900 border border-slate-700 rounded-xl overflow-y-auto shadow-2xl" style="max-height:170px;">
+                                <input type="hidden" id="select-local" value="">
+                                {% for team in teams %}
+                                <div class="team-option px-4 py-2 text-xs text-slate-300 cursor-pointer hover:bg-slate-800 hover:text-green-500 transition-colors flex items-center gap-3"
+                                     data-id="{{ team.id }}" data-name="{{ team.name }}" data-crest="{{ team.crest }}">
+                                    {% if team.crest %}<img src="{{ team.crest }}" class="w-5 h-5 object-contain flex-shrink-0" alt="{{ team.name }}">{% endif %}
+                                    <span>{{ team.name }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
                     </div>
-                    <div id="display-local" class="h-20 border border-dashed border-slate-800 rounded-[1.5rem] flex items-center justify-center text-slate-500 text-xs uppercase font-mono px-6 text-center transition-all duration-300">
+                    <div id="display-local" class="h-14 border border-dashed border-slate-800 rounded-[1.2rem] flex items-center justify-center text-slate-500 text-[10px] uppercase font-mono px-6 text-center transition-all duration-300">
                         [ SIN SELECCIÓN ]
                     </div>
                 </div>
             </div>
 
-            <div class="flex-1 min-h-[200px] p-8 bg-slate-900/50 border border-slate-800 rounded-[2.5rem] space-y-6 relative flex flex-col justify-center">
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Visitor Team</p>
-                <div class="space-y-4">
+            {# Visitante #}
+            <div class="flex-1 min-h-[150px] p-6 bg-slate-900/50 border border-slate-800 rounded-[2rem] space-y-4 relative flex flex-col justify-center">
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Equipo Visitante</p>
+                <div class="space-y-3">
                     <div class="flex items-center gap-2 relative">
                         <div class="relative flex-1">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="h-3 w-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
                             </div>
                             <input type="text" id="search-visitor" placeholder="Buscar equipo..." autocomplete="off"
-                                   class="w-full bg-slate-800 border border-slate-700 rounded-2xl pl-12 pr-4 py-4 text-sm focus:border-green-500 outline-none text-slate-300 transition-all">
+                                   class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-xs focus:border-green-500 outline-none text-slate-300 transition-all">
                         </div>
-                        <select id="select-visitor" size="1"
-                                class="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-4 text-sm focus:border-green-500 outline-none cursor-pointer text-green-500 font-bold w-16 text-center">
-                            <option value="">+</option>
-                            {% for team in teams %}
-                                <option value="{{ team.id }}">{{ team.name }}</option>
-                            {% endfor %}
-                        </select>
+                        <div class="relative" id="dropdown-wrapper-visitor">
+                            <button id="btn-open-visitor" type="button"
+                                    class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-3 text-xs text-green-500 font-bold w-14 text-center hover:border-green-500 transition-all">
+                                +
+                            </button>
+                            <div id="dropdown-visitor" class="team-dropdown hidden absolute right-0 top-full mt-1 z-50 w-56 bg-slate-900 border border-slate-700 rounded-xl overflow-y-auto shadow-2xl" style="max-height:170px;">
+                                <input type="hidden" id="select-visitor" value="">
+                                {% for team in teams %}
+                                <div class="team-option px-4 py-2 text-xs text-slate-300 cursor-pointer hover:bg-slate-800 hover:text-green-500 transition-colors flex items-center gap-3"
+                                     data-id="{{ team.id }}" data-name="{{ team.name }}" data-crest="{{ team.crest }}">
+                                    {% if team.crest %}<img src="{{ team.crest }}" class="w-5 h-5 object-contain flex-shrink-0" alt="{{ team.name }}">{% endif %}
+                                    <span>{{ team.name }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
                     </div>
-                    <div id="display-visitor" class="h-20 border border-dashed border-slate-800 rounded-[1.5rem] flex items-center justify-center text-slate-500 text-xs uppercase font-mono px-6 text-center transition-all duration-300">
+                    <div id="display-visitor" class="h-14 border border-dashed border-slate-800 rounded-[1.2rem] flex items-center justify-center text-slate-500 text-[10px] uppercase font-mono px-6 text-center transition-all duration-300">
                         [ SIN SELECCIÓN ]
                     </div>
                 </div>
             </div>
 
-            <div class="flex flex-row items-center gap-4">
-                <button id="btn-reverse" class="group bg-slate-800 hover:bg-slate-700 border border-slate-700 p-6 rounded-3xl transition-all active:scale-90 shadow-xl">
-                    <svg class="w-8 h-8 text-green-500 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex flex-row lg:flex-col items-center justify-center gap-3">
+                <button id="btn-reverse" class="group bg-slate-800 hover:bg-slate-700 border border-slate-700 p-4 rounded-2xl transition-all active:scale-90 shadow-xl">
+                    <svg class="w-6 h-6 text-green-500 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
                     </svg>
                 </button>
-                <button id="btn-compare" class="bg-green-600 hover:bg-green-500 text-black font-black py-10 px-10 rounded-3xl transition-all uppercase text-xs tracking-[0.2em] shadow-lg shadow-green-900/20 active:scale-95 leading-tight text-center">
+                <button id="btn-compare" class="bg-green-600 hover:bg-green-500 text-black font-black py-6 px-8 rounded-2xl transition-all uppercase text-[10px] tracking-[0.1em] shadow-lg active:scale-95 leading-tight text-center">
                     Iniciar<br>Comparación
                 </button>
             </div>
         </div>
 
-        <div id="results-container" class="hidden mt-8 w-full transition-all duration-700 opacity-0 translate-y-10">
-            <div class="flex flex-row gap-6 items-stretch">
-                <div class="w-1/3 p-8 bg-slate-900/80 border border-slate-800 rounded-[2.5rem] flex flex-col items-center justify-center space-y-6">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest self-start">📈 Probabilidad Victoria</p>
-                    <div class="text-center">
-                        <h3 id="main-prob" class="text-7xl font-black text-green-500 tracking-tighter">0%</h3>
-                        <p class="text-[9px] text-slate-500 uppercase font-mono tracking-[0.3em] mt-2">IRM Confidence</p>
+        {# ── RESULTADOS ── #}
+        <div id="results-container" class="hidden mt-8 w-full">
+
+            {# Fila superior: probabilidad + métricas #}
+            <div class="flex flex-col md:flex-row gap-4 items-stretch">
+
+                <div class="w-full md:w-1/3 bg-slate-900/80 border border-slate-800 rounded-[2rem] overflow-hidden flex flex-col shadow-2xl">
+                    <div class="bg-slate-800/40 px-6 py-4 border-b border-slate-800">
+                        <p class="text-[14px] font-black text-slate-300 uppercase tracking-[0.25em]">Probabilidad de Victoria</p>
                     </div>
-                </div>
-                <div class="flex-1 p-8 bg-slate-900/80 border border-slate-800 rounded-[2.5rem] space-y-8">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">📊 Métricas Comparativas</p>
-                    <div class="space-y-6">
-                        <div class="space-y-2">
-                            <div class="flex justify-between text-[9px] font-bold uppercase text-slate-300">
-                                <span>Puntos Liga</span>
-                                <span id="label-points">-- VS --</span>
-                            </div>
-                            <div class="h-2 w-full bg-slate-800 rounded-full flex overflow-hidden">
-                                <div id="bar-points-a" class="h-full bg-green-500 transition-all duration-1000" style="width: 0%"></div>
-                                <div id="bar-points-b" class="h-full bg-blue-600 transition-all duration-1000" style="width: 0%"></div>
-                            </div>
+                    <div class="p-8 flex-1 flex flex-col items-center justify-center space-y-4">
+                        <div class="text-center">
+                            <h3 id="main-prob" class="text-6xl font-black text-green-500 tracking-tighter">0%</h3>
+                            <p id="label-prob-detail" class="text-[9px] text-white uppercase font-mono tracking-[0.3em] mt-2 italic">Confidence Score</p>
+                        </div>
+                        <div class="h-1.5 w-full bg-slate-800 rounded-full flex overflow-hidden">
+                            <div id="bar-prob-a" class="h-full bg-green-500 transition-all duration-1000" style="width: 50%"></div>
+                            <div id="bar-prob-b" class="h-full bg-blue-600 transition-all duration-1000" style="width: 50%"></div>
                         </div>
                     </div>
                 </div>
+
+                <div class="flex-1 bg-slate-900/80 border border-slate-800 rounded-[2rem] overflow-hidden flex flex-col shadow-2xl">
+                    <div class="bg-slate-800/40 px-6 py-4 border-b border-slate-800">
+                        <p class="text-[14px] font-black text-slate-300 uppercase tracking-[0.25em]">Métricas Comparativas</p>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="grid grid-cols-3 gap-4 px-2 border-b border-slate-800 pb-2">
+                            <span id="name-a" class="text-[9px] font-black text-green-500 uppercase">LOCAL</span>
+                            <span class="text-[9px] font-bold text-slate-600 text-center uppercase tracking-widest">Parámetro</span>
+                            <span id="name-b" class="text-[9px] font-black text-blue-600 uppercase text-right">VISITANTE</span>
+                        </div>
+                        <div id="dynamic-metrics" class="space-y-2 min-h-[150px]"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            {# Fila inferior: gráficos #}
+            <div class="flex flex-col md:flex-row gap-4 mt-4">
+
+                {# Gráfico de líneas: forma últimos 5 partidos #}
+                <div class="w-full md:w-1/3 bg-slate-900/80 border border-slate-800 rounded-[2rem] overflow-hidden shadow-2xl">
+                    <div class="bg-slate-800/40 px-6 py-4 border-b border-slate-800">
+                    </div>
+                    <div class="p-4">
+                        <div id="chart-form" style="height:260px;"></div>
+                    </div>
+                </div>
+
+                {# Gráfico de barras: métricas comparativas #}
+                <div class="flex-1 bg-slate-900/80 border border-slate-800 rounded-[2rem] overflow-hidden shadow-2xl">
+                    <div class="bg-slate-800/40 px-6 py-4 border-b border-slate-800">
+                    </div>
+                    <div class="p-4">
+                        <div id="chart-bars" style="height:260px;"></div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
     {% else %}
-        <div class="w-full h-[60vh] flex items-center justify-center border-2 border-dashed border-slate-900 rounded-[3.5rem]">
-            <p class="text-slate-600 font-mono text-sm uppercase tracking-[0.4em] animate-pulse text-center">
-                <-- Selecciona competición en el menú lateral
+        <div class="w-full h-[50vh] flex items-center justify-center border-2 border-dashed border-slate-900 rounded-[3rem]">
+            <p class="text-slate-700 font-mono text-xs uppercase tracking-[0.4em] animate-pulse text-center">
+                &larr; Selecciona competición en el menú lateral
             </p>
         </div>
     {% endif %}
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. Lógica de los buscadores (Mantenida)
-    function setupFilter(inputId, selectId, displayId) {
-        const input = document.getElementById(inputId);
-        const select = document.getElementById(selectId);
-        const display = document.getElementById(displayId);
-        const originalOptions = Array.from(select.options);
-
-        input.addEventListener('input', function() {
-            const searchTerm = input.value.toLowerCase();
-            if (searchTerm.length > 0) {
-                select.size = 8;
-                select.classList.add('absolute', 'z-50', 'w-full', 'top-full', 'mt-2', 'bg-slate-800', 'shadow-2xl');
-            } else {
-                select.size = 1;
-                select.classList.remove('absolute', 'z-50', 'w-full', 'top-full', 'mt-2');
-            }
-            select.innerHTML = '';
-            select.appendChild(originalOptions[0]);
-            const filtered = originalOptions.slice(1).filter(opt => opt.text.toLowerCase().includes(searchTerm));
-            filtered.forEach(opt => select.appendChild(opt.cloneNode(true)));
-        });
-
-        select.addEventListener('change', function() {
-            if (select.value !== "") {
-                const selectedName = select.options[select.selectedIndex].text;
-                const otherInputId = inputId === 'search-local' ? 'search-visitor' : 'search-local';
-                const otherInput = document.getElementById(otherInputId);
-
-                if (selectedName === otherInput.value) {
-                    alert("ERROR IRM: No puedes seleccionar el mismo equipo.");
-                    input.value = "";
-                } else {
-                    input.value = selectedName;
-                    display.innerText = selectedName;
-                    display.className = "h-20 border border-dashed border-green-500/40 bg-green-500/5 rounded-[1.5rem] flex items-center justify-center text-green-500 text-sm font-black uppercase font-mono px-6 text-center shadow-inner";
-                }
-                select.size = 1;
-                select.classList.remove('absolute', 'z-50', 'w-full', 'top-full', 'mt-2');
-            }
-        });
-    }
-
-    setupFilter('search-local', 'select-local', 'display-local');
-    setupFilter('search-visitor', 'select-visitor', 'display-visitor');
-
-    // 2. Lógica del Reverse (Mantenida)
-    document.getElementById('btn-reverse').addEventListener('click', function() {
-        const lInp = document.getElementById('search-local'), vInp = document.getElementById('search-visitor');
-        const lDisp = document.getElementById('display-local'), vDisp = document.getElementById('display-visitor');
-        [lInp.value, vInp.value] = [vInp.value, lInp.value];
-        [lDisp.innerText, vDisp.innerText] = [vDisp.innerText, lDisp.innerText];
-        [lDisp.className, vDisp.className] = [vDisp.className, lDisp.className];
-    });
-
-    // 3. Lógica de COMPARACIÓN (Llamada al IRM Engine)
-    document.getElementById('btn-compare').addEventListener('click', function() {
-        const leagueId = new URLSearchParams(window.location.search).get('league');
-        const teamA = document.getElementById('select-local').value;
-        const teamB = document.getElementById('select-visitor').value;
-
-        if (!teamA || !teamB || !leagueId) {
-            alert("Selecciona ambos equipos para procesar los datos");
-            return;
-        }
-
-        this.innerText = "PROCESANDO...";
-        
-        fetch(`/tracker/compare/${leagueId}/${teamA}/${teamB}/`)
-            .then(res => res.json())
-            .then(response => {
-                const results = response.data;
-                const container = document.getElementById('results-container');
-                
-                // Mostrar y animar
-                container.classList.remove('hidden');
-                setTimeout(() => {
-                    container.classList.remove('opacity-0', 'translate-y-10');
-                }, 100);
-
-                // Pintar Probabilidades
-                document.getElementById('main-prob').innerText = results.team_a + "%";
-                
-                // Pintar Métricas (Puntos)
-                const pA = results.raw_stats.points_a;
-                const pB = results.raw_stats.points_b;
-                document.getElementById('label-points').innerText = `${pA} PTS VS ${pB} PTS`;
-                document.getElementById('bar-points-a').style.width = (pA / (pA + pB) * 100) + "%";
-                document.getElementById('bar-points-b').style.width = (pB / (pA + pB) * 100) + "%";
-
-                this.innerHTML = "INICIAR<br>COMPARACIÓN";
-            });
-    });
-});
-</script>
+<script src="{% static 'tracker/js/index.js' %}"></script>
 {% endblock %}

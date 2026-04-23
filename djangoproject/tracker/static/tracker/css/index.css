@@ -1,0 +1,56 @@
+/* Animación de entrada lateral para las filas de métricas */
+@keyframes fadeInRight {
+    from { opacity: 0; transform: translateX(15px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Glow y tipografía numérica para el porcentaje principal */
+#main-prob {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Evita desbordamiento de texto en spans de métricas */
+#dynamic-metrics span {
+    white-space: nowrap;
+}
+
+/* ── DROPDOWN DE BÚSQUEDA DE EQUIPOS ── */
+select[size]:not([size="1"]) {
+    display: block !important;
+    position: absolute !important;
+    top: 100%;
+    left: 0;
+    width: 100% !important;
+    height: 140px !important;
+    min-height: 140px !important;
+    max-height: 140px !important;
+    overflow-y: scroll !important;
+    background-color: #0f172a !important;
+    border: 1px solid #1e293b !important;
+    border-radius: 0.75rem;
+    z-index: 1000 !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+    margin-top: 4px;
+}
+
+select[size]:not([size="1"]) option {
+    padding: 10px 12px !important;
+    font-size: 11px !important;
+    color: #94a3b8 !important;
+    background-color: transparent !important;
+    cursor: pointer;
+    border-bottom: 1px solid #1e293b;
+}
+
+select[size]:not([size="1"]) option:hover {
+    background-color: #1e293b !important;
+    color: #22c55e !important;
+}
+
+/* Scrollbar minimalista */
+select[size]::-webkit-scrollbar { width: 3px !important; }
+select[size]::-webkit-scrollbar-track { background: transparent; }
+select[size]::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+#player-dropdown::-webkit-scrollbar { width: 4px; }
+#player-dropdown::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
