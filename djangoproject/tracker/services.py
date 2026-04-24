@@ -82,6 +82,9 @@ def fetch_performance_data(team_a_id, team_b_id, league_id):
         res_ma = requests.get(url_matches_a, headers=headers)
         res_mb = requests.get(url_matches_b, headers=headers)
         res_h2h = requests.get(url_h2h, headers=headers)
+        print(
+            f"H2H status: {res_h2h.status_code}, matches: {len(res_h2h.json().get('matches', []))}"
+        )
 
         if res_s.status_code == 200:
             # Extraemos solo la tabla general
@@ -161,9 +164,7 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
                     return (3, "W")
                 return (0, "L")
 
-            # Tomamos los 5 últimos partidos (los más recientes)
-            last_5_matches = df.head(5)
-            results = last_5_matches.apply(calc_pts, axis=1)
+            results = df.head(5).apply(calc_pts, axis=1)
             pts_5 = sum([x[0] for x in results])
             str_5 = "".join([x[1] for x in results])
 
@@ -176,6 +177,7 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
                     else 0,
                     axis=1,
                 ).sum()
+
                 eff = round((wins / len(df)) * 100, 1)
             else:
                 eff = 0
@@ -227,13 +229,7 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
             if df is None or df.empty:
                 return []
 
-            df["utcDate"] = pd.to_datetime(df["utcDate"])
-            last5 = (
-                df.sort_values("utcDate", ascending=False)
-                .head(5)
-                .iloc[::-1]
-                .reset_index(drop=True)
-            )
+            last5 = df.head(5).iloc[::-1].reset_index(drop=True)
 
             result = []
             for i, row in last5.iterrows():
@@ -275,20 +271,69 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
                 "val_b": int(stats_b["points"]),
             },
             {
-                "metrica": "Goles Favor (AVG)",
-                "val_a": m_a["avg_f"],
-                "val_b": m_b["avg_f"],
+                "metrica": "Goles Favor (Total)",
+                "val_a": int(df_a["gf"].sum()) if df_a is not None else 0,
+                "val_b": int(df_b["gf"].sum()) if df_b is not None else 0,
             },
             {
-                "metrica": "Goles Contra (AVG)",
-                "val_a": m_a["avg_c"],
-                "val_b": m_b["avg_c"],
+                "metrica": "Goles Contra (Total)",
+                "val_a": int(df_a["gc"].sum()) if df_a is not None else 0,
+                "val_b": int(df_b["gc"].sum()) if df_b is not None else 0,
             },
             {"metrica": "Porterías a cero", "val_a": m_a["cs"], "val_b": m_b["cs"]},
             {"metrica": "Efectividad (%)", "val_a": m_a["eff"], "val_b": m_b["eff"]},
         ]
 
-        # Construcción de la tabla comparativa
+        # ── DATOS H2H: últimos encuentros directos entre ambos equipos ──
+        def build_h2h(matches, ta_id, tb_id):
+            if not matches:
+                return []
+
+            result = []
+            for m in reversed(matches):  # más recientes primero
+                try:
+                    home_id = m["homeTeam"]["id"]
+                    away_id = m["awayTeam"]["id"]
+
+                    # Solo partidos entre EXACTAMENTE estos dos equipos
+                    if {home_id, away_id} != {ta_id, tb_id}:
+                        continue
+
+                    home_name = m["homeTeam"]["name"]
+                    away_name = m["awayTeam"]["name"]
+                    score_h   = m["score"]["fullTime"]["home"]
+                    score_av  = m["score"]["fullTime"]["away"]
+                    winner    = m["score"]["winner"]
+                    date      = m.get("utcDate", "")[:10]
+
+                    res_status = "draw"
+                    if winner == "HOME_TEAM":
+                        res_status = "home"
+                    elif winner == "AWAY_TEAM":
+                        res_status = "away"
+
+                    result.append({
+                        "date":      date,
+                        "home":      home_name,
+                        "away":      away_name,
+                        "score":     f"{score_h}-{score_av}" if score_h is not None else "?-?",
+                        "result":    res_status,
+                        "local_won": (winner == "HOME_TEAM" and home_id == ta_id)
+                                    or (winner == "AWAY_TEAM" and away_id == ta_id),
+                    })
+
+                    if len(result) >= 5:
+                        break
+
+                except KeyError:
+                    continue
+
+            return result
+
+        h2h_matches = build_h2h(raw_data["h2h"], t_a_id, t_b_id)
+        print(f"H2H procesados: {len(h2h_matches)}")
+
+        # Construcción de la tabla con Suma + (Media)
         return {
             "team_a_prob": prob_a,
             "team_b_prob": prob_b,
@@ -332,6 +377,7 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
             "form_a": form_a,
             "form_b": form_b,
             "bar_metrics": bar_metrics,
+            "h2h_matches": h2h_matches,
         }
 
     except Exception as e:
@@ -343,6 +389,7 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
             "form_a": [],
             "form_b": [],
             "bar_metrics": [],
+            "h2h_matches": [],
         }
 
 

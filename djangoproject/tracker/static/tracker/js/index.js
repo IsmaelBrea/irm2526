@@ -17,18 +17,8 @@ const PLOTLY_BASE_LAYOUT = {
     margin:        { t: 10, r: 10, b: 40, l: 40 },
     showlegend:    true,
     legend:        { orientation: 'h', y: -0.25, font: { size: 9 } },
-    xaxis: {
-        gridcolor:     '#1e293b',
-        linecolor:     '#334155',
-        tickfont:      { size: 9, color: '#64748b' },
-        zeroline:      false,
-    },
-    yaxis: {
-        gridcolor:     '#1e293b',
-        linecolor:     '#334155',
-        tickfont:      { size: 9, color: '#64748b' },
-        zeroline:      false,
-    },
+    xaxis: { gridcolor: '#1e293b', linecolor: '#334155', tickfont: { size: 9, color: '#64748b' }, zeroline: false },
+    yaxis: { gridcolor: '#1e293b', linecolor: '#334155', tickfont: { size: 9, color: '#64748b' }, zeroline: false },
 };
 
 const PLOTLY_CONFIG = { displayModeBar: false, responsive: true };
@@ -83,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const otherName   = document.getElementById(otherSearch).value;
 
                 if (name === otherName) {
-                    alert("ERROR IRM: No puedes seleccionar el mismo equipo.");
+                    alert("No puedes seleccionar el mismo equipo.");
                     return;
                 }
 
@@ -107,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── FILTRO DINÁMICO EN INPUT DE BÚSQUEDA ──
     function setupFilter(inputId, dropdownId) {
-        const input   = document.getElementById(inputId);
+        const input    = document.getElementById(inputId);
         const dropdown = document.getElementById(dropdownId);
         const options  = Array.from(dropdown.querySelectorAll('.team-option'));
 
@@ -138,155 +128,173 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── GRÁFICO DE LÍNEAS: forma últimos 5 partidos ──
     function renderFormChart(formA, formB, nameA, nameB) {
-        const jornadas = formA.map(d => d.jornada);
-
         const traceA = {
-            x:    jornadas,
-            y:    formA.map(d => d.pts),
-            name: nameA,
+            x: formA.map(d => d.jornada), y: formA.map(d => d.pts), name: nameA,
             mode: 'lines+markers',
             line:   { color: '#22c55e', width: 2.5, shape: 'spline' },
             marker: { color: '#22c55e', size: 7, symbol: 'circle' },
             text:   formA.map(d => `vs ${d.rival}<br>${d.score}`),
             hovertemplate: '<b>%{text}</b><br>Puntos: %{y}<extra></extra>',
         };
-
         const traceB = {
-            x:    formB.map(d => d.jornada),
-            y:    formB.map(d => d.pts),
-            name: nameB,
+            x: formB.map(d => d.jornada), y: formB.map(d => d.pts), name: nameB,
             mode: 'lines+markers',
             line:   { color: '#3b82f6', width: 2.5, shape: 'spline' },
             marker: { color: '#3b82f6', size: 7, symbol: 'circle' },
             text:   formB.map(d => `vs ${d.rival}<br>${d.score}`),
             hovertemplate: '<b>%{text}</b><br>Puntos: %{y}<extra></extra>',
         };
-
         const layout = {
             ...PLOTLY_BASE_LAYOUT,
-            yaxis: {
-                ...PLOTLY_BASE_LAYOUT.yaxis,
-                tickvals: [0, 1, 3],
-                ticktext: ['D (0)', 'Empate (1)', 'Victoria (3)'],
-                range: [-0.3, 3.5],
-            },
+            yaxis: { ...PLOTLY_BASE_LAYOUT.yaxis, tickvals: [0, 1, 3], ticktext: ['Derrota (0)', 'Empate (1)', 'Victoria (3)'], range: [-0.3, 3.5] },
         };
-
         Plotly.newPlot('chart-form', [traceA, traceB], layout, PLOTLY_CONFIG);
     }
 
     // ── GRÁFICO DE BARRAS: métricas comparativas ──
     function renderBarChart(barMetrics, nameA, nameB) {
         const labels = barMetrics.map(d => d.metrica);
-
         const traceA = {
-            x:           labels,
-            y:           barMetrics.map(d => d.val_a),
-            name:        nameA,
-            type:        'bar',
-            marker:      { color: 'rgba(34,197,94,0.75)', line: { color: '#22c55e', width: 1 } },
+            x: labels, y: barMetrics.map(d => d.val_a), name: nameA, type: 'bar',
+            marker: { color: 'rgba(34,197,94,0.75)', line: { color: '#22c55e', width: 1 } },
             hovertemplate: '%{y}<extra></extra>',
         };
-
         const traceB = {
-            x:           labels,
-            y:           barMetrics.map(d => d.val_b),
-            name:        nameB,
-            type:        'bar',
-            marker:      { color: 'rgba(59,130,246,0.75)', line: { color: '#3b82f6', width: 1 } },
+            x: labels, y: barMetrics.map(d => d.val_b), name: nameB, type: 'bar',
+            marker: { color: 'rgba(59,130,246,0.75)', line: { color: '#3b82f6', width: 1 } },
             hovertemplate: '%{y}<extra></extra>',
         };
-
         const layout = {
             ...PLOTLY_BASE_LAYOUT,
-            barmode: 'group',
-            bargap:  0.25,
-            xaxis: {
-                ...PLOTLY_BASE_LAYOUT.xaxis,
-                tickfont: { size: 8, color: '#64748b' },
-            },
+            barmode: 'group', bargap: 0.25,
+            xaxis: { ...PLOTLY_BASE_LAYOUT.xaxis, tickfont: { size: 8, color: '#64748b' } },
         };
-
         Plotly.newPlot('chart-bars', [traceA, traceB], layout, PLOTLY_CONFIG);
     }
 
-    // ── COMPARACIÓN AJAX ──
-    document.getElementById('btn-compare').addEventListener('click', function () {
-        const leagueId = new URLSearchParams(window.location.search).get('league');
-        const teamA    = document.getElementById('select-local').value;
-        const teamB    = document.getElementById('select-visitor').value;
-
-        if (!teamA || !teamB || !leagueId) {
-            alert("Selecciona ambos equipos para procesar los datos");
+    // ── ÚLTIMOS 5 RESULTADOS lado a lado ──
+    function renderLastResults(h2hMatches) {
+        const box = document.getElementById('h2h-matches');
+        console.log(box);
+        if (!box) return;
+        
+        box.innerHTML = ''; 
+    
+        if (!h2hMatches || h2hMatches.length === 0) {
+            box.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b; font-size:10px; text-transform:uppercase;">Sin datos previos</div>`;
             return;
         }
+        
+        console.log("H2H ARRAY:", h2hMatches);
+        h2hMatches.forEach((m, i) => {
+            const row = document.createElement('div');
+            row.style.display = "grid";
+            row.style.gridTemplateColumns = "90px 1fr auto 1fr 90px";
+            row.style.alignItems = "center";
+            row.style.padding = "8px 16px";
+            row.style.marginBottom = "4px";
+            row.style.borderRadius = "8px";
+            row.style.backgroundColor = "rgba(30, 41, 59, 0.4)";
+            
+            let c = "#94a3b8"; 
+            if (m.result === "home") c = "#22c55e"; 
+            if (m.result === "away") c = "#3b82f6"; 
+    
+            console.log("PARTIDO:", m);
+            row.innerHTML = `
+    <span style="font-size:10px; color:#64748b; font-family:monospace;">
+        ${m.date || '-'}
+    </span>
 
-        const btn     = this;
-        btn.innerHTML = `<span style="font-size:10px;letter-spacing:0.1em;">PROCESANDO...</span>`;
-        btn.disabled  = true;
+    <span style="font-size:11px; font-weight:700; color:#cbd5e1; text-align:right; padding-right:10px; overflow:hidden; text-overflow:ellipsis;">
+        ${m.home || '-'}
+    </span>
 
-        fetch(`/tracker/compare/${leagueId}/${teamA}/${teamB}/`)
-            .then(res => res.json())
-            .then(response => {
-                if (response.status !== "success") throw new Error(response.message || "Error desconocido");
+    <div style="background:#020617; border:1px solid #334155; padding:2px 10px; border-radius:4px; min-width:65px; text-align:center;">
+        <span style="font-family:monospace; font-weight:900; font-size:13px; color:${c}">
+            ${m.score || '-'}
+        </span>
+    </div>
 
-                const results          = response.data;
-                const container        = document.getElementById('results-container');
-                const metricsContainer = document.getElementById('dynamic-metrics');
-                if (!container || !metricsContainer) return;
+    <span style="font-size:11px; font-weight:700; color:#cbd5e1; text-align:left; padding-left:10px; overflow:hidden; text-overflow:ellipsis;">
+        ${m.away || '-'}
+    </span>
 
-                metricsContainer.innerHTML = '';
+    <div style="text-align:center;">
+        ${m.local_won === true
+            ? '<span style="font-size:8px; font-weight:900; color:#22c55e; border:1px solid #22c55e33; padding:1px 4px; border-radius:3px; background:rgba(34,197,94,0.1);">WIN</span>'
+            : ''
+        }
+    </div>
+`;
+            box.appendChild(row);
+        });
+    };
 
-                // Mostrar contenedor
-                container.classList.remove('hidden');
-                container.style.opacity    = '0';
-                container.style.transform  = 'translateY(8px)';
-                container.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-                setTimeout(() => {
-                    container.style.opacity   = '1';
-                    container.style.transform = 'translateY(0)';
-                }, 30);
 
-                // Probabilidades
-                document.getElementById('main-prob').innerText         = results.team_a_prob + "%";
-                document.getElementById('label-prob-detail').innerText = `${results.team_a_prob}% VS ${results.team_b_prob}%`;
-                document.getElementById('bar-prob-a').style.width      = results.team_a_prob + "%";
-                document.getElementById('bar-prob-b').style.width      = results.team_b_prob + "%";
+   // ── COMPARACIÓN AJAX ──
+   document.getElementById('btn-compare').addEventListener('click', function () {
+    const lId = new URLSearchParams(window.location.search).get('league');
+    const tA  = document.getElementById('select-local').value;
+    const tB  = document.getElementById('select-visitor').value;
 
-                const nameA = document.getElementById('display-local').innerText;
-                const nameB = document.getElementById('display-visitor').innerText;
+    if (!tA || !tB || !lId) {
+        alert("Selecciona equipos");
+        return;
+    }
 
-                document.getElementById('name-a').innerText = nameA;
-                document.getElementById('name-b').innerText = nameB;
+    const b = this;
+    b.innerHTML = "PROCESANDO...";
+    b.disabled = true;
 
-                // Filas de métricas
-                results.comparison_table.forEach((item, index) => {
-                    const row = document.createElement('div');
-                    row.className = "grid grid-cols-3 gap-2 px-3 py-2 rounded-lg hover:bg-slate-800/60 transition-colors duration-200";
-                    row.style.cssText = `opacity:0; transform:translateX(15px); animation:fadeInRight 0.35s ease forwards ${index * 0.07}s;`;
-                    row.innerHTML = `
-                        <span style="font-size:14px;font-weight:800;color:#22c55e;font-family:monospace;">${item.val_a}</span>
-                        <span style="font-size:11px;font-weight:700;color:#64748b;text-align:center;text-transform:uppercase;letter-spacing:0.04em;">${item.metrica}</span>
-                        <span style="font-size:14px;font-weight:800;color:#3b82f6;font-family:monospace;text-align:right;">${item.val_b}</span>
-                    `;
-                    metricsContainer.appendChild(row);
-                });
+    fetch(`/tracker/compare/${lId}/${tA}/${tB}/`)
+    .then(r => r.json())
+    .then(res => {
+        if (res.status !== "success") return;
+        
+        const d = res.data;
+        const view = document.getElementById('results-container');
+        if (!view) return;
 
-                // Gráficos Plotly
-                if (results.form_a && results.form_b) {
-                    renderFormChart(results.form_a, results.form_b, nameA, nameB);
-                }
-                if (results.bar_metrics) {
-                    renderBarChart(results.bar_metrics, nameA, nameB);
-                }
+        // Mostrar todo el bloque de golpe
+        view.classList.remove('hidden');
+        view.style.display = "block"; 
+        view.style.opacity = "1";
 
-                btn.innerHTML = "Iniciar<br>Comparación";
-                btn.disabled  = false;
-            })
-            .catch(err => {
-                console.error("IRM Engine error:", err);
-                btn.innerHTML = "INICIAR COMPARACIÓN";
-                btn.disabled  = false;
-            });
+        // Datos básicos
+        document.getElementById('main-prob').innerText = d.team_a_prob + "%";
+        document.getElementById('label-prob-detail').innerText = `${d.team_a_prob}% VS ${d.team_b_prob}%`;
+        document.getElementById('bar-prob-a').style.width = d.team_a_prob + "%";
+        document.getElementById('bar-prob-b').style.width = d.team_b_prob + "%";
+
+        // Limpiar y rellenar métricas
+        const met = document.getElementById('dynamic-metrics');
+        met.innerHTML = '';
+        d.comparison_table.forEach(i => {
+            const row = document.createElement('div');
+            row.className = "grid grid-cols-3 gap-2 px-3 py-2 border-b border-slate-800/30";
+            row.innerHTML = `<span class="text-green-500 font-black">${i.val_a}</span><span class="text-slate-500 text-center text-[10px] uppercase">${i.metrica}</span><span class="text-blue-500 font-black text-right">${i.val_b}</span>`;
+            met.appendChild(row);
+        });
+
+        // Gráficos
+        const nA = document.getElementById('display-local').innerText;
+        const nB = document.getElementById('display-visitor').innerText;
+        renderFormChart(d.form_a, d.form_b, nA, nB);
+        renderBarChart(d.bar_metrics, nA, nB);
+
+        // TABLA H2H
+        if (d.h2h_matches) {
+            renderLastResults(d.h2h_matches);
+        }
+
+        b.innerHTML = "Iniciar<br>Comparación";
+        b.disabled = false;
+    })
+    .catch(e => {
+        console.error(e);
+        b.innerHTML = "ERROR";
+        b.disabled = false;
+        });
     });
 });
