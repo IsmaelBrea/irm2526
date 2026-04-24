@@ -172,6 +172,7 @@ def get_league_matches(request):
     """Retorna partidos de una liga"""
     league_id = request.GET.get("league_id")
     round_num = request.GET.get("round")
+    year = request.GET.get("year")
 
     if not league_id:
         return JsonResponse(
@@ -180,7 +181,7 @@ def get_league_matches(request):
 
     try:
         league_id = int(league_id)
-        matches = fetch_matches_besoccer(league_id, round_num)
+        matches = fetch_matches_besoccer(league_id, round_num=round_num, year=year)
         return JsonResponse({"status": "success", "data": matches})
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)

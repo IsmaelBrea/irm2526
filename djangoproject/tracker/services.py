@@ -443,7 +443,7 @@ LEAGUE_ID_MAP = {
 }
 
 
-def fetch_matches_besoccer(league_id, round_num=None):
+def fetch_matches_besoccer(league_id, round_num=None, year=None):
     """Obtiene partidos de una liga desde besoccerapps API"""
     besoccer_league_id = LEAGUE_ID_MAP.get(league_id)
 
@@ -452,8 +452,10 @@ def fetch_matches_besoccer(league_id, round_num=None):
 
     api_key = os.getenv("BESOCCER_API_KEY")
 
-    # Construir URL sin extra=png
     url = f"http://apiclient.besoccerapps.com/scripts/api/api.php?format=json&req=matchs&tz=Europe/Madrid&key={api_key}&league={besoccer_league_id}"
+
+    if year:
+        url += f"&year={year}"
 
     if round_num:
         url += f"&round={round_num}"

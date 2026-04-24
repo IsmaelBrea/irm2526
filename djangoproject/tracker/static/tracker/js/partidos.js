@@ -1,37 +1,69 @@
 document.addEventListener('DOMContentLoaded', function() {
     const leagueId = new URLSearchParams(window.location.search).get('league');
+    const seasonFilter = document.getElementById('season-filter');
     const roundFilter = document.getElementById('round-filter');
     const matchesContainer = document.getElementById('matches-container');
 
     if (!leagueId) return;
 
+    let seasonsLoaded = false;
+    let roundsLoaded = false;
+    let allMatches = [];
+
     function loadMatches() {
+        const year = seasonFilter.value;
         const round = roundFilter.value;
         let url = `/tracker/api/league-matches/?league_id=${leagueId}`;
+        if (year) url += `&year=${year}`;
         if (round) url += `&round=${round}`;
 
         fetch(url)
             .then(r => r.json())
             .then(data => {
                 if (data.status === 'success' && data.data.length > 0) {
-                    const matches = data.data;
+                    allMatches = data.data;
                     
-                    if (!round && roundFilter.children.length === 0) {
-                        const totalRounds = parseInt(matches[0].total_rounds) || 38;
-                        const currentRound = matches[0].round;
-                        
+                    if (!seasonsLoaded) {
+    const currentYear = new Date().getFullYear();
+    const startYear = 2010;
+    const years = [];
+    
+    for (let y = currentYear; y >= startYear; y--) {
+        years.push(y);
+    }
+    
+    seasonFilter.innerHTML = '';
+    
+    years.forEach(y => {
+        const option = document.createElement('option');
+        option.value = y;
+        const prevYear = parseInt(y) - 1;
+        option.textContent = `${prevYear}/${y}`;
+        seasonFilter.appendChild(option);
+    });
+    
+    seasonFilter.value = currentYear;
+    seasonsLoaded = true;
+}
+
+                    const matchesInSeason = allMatches.filter(m => m.year === seasonFilter.value);
+                    const totalRounds = Math.max(...matchesInSeason.map(m => parseInt(m.round)));
+                    
+                    if (!roundsLoaded || seasonFilter.value) {
+                        roundFilter.innerHTML = '';
                         
                         for (let i = 1; i <= totalRounds; i++) {
                             const option = document.createElement('option');
                             option.value = i;
-                            option.textContent = `Jornada ${i}`;
+                            option.textContent = `${i}`;
                             roundFilter.appendChild(option);
                         }
                         
-                        roundFilter.value = currentRound;
+                        roundFilter.value = matchesInSeason[0].round;
+                        roundsLoaded = true;
                     }
 
-                    renderMatches(matches);
+                    renderMatches(matchesInSeason);
                 } else {
                     matchesContainer.innerHTML = '<p class="text-slate-400">No hay partidos disponibles</p>';
                 }
@@ -84,6 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    seasonFilter.addEventListener('change', loadMatches);
     roundFilter.addEventListener('change', loadMatches);
     loadMatches();
 });
