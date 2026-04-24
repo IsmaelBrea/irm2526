@@ -1,0 +1,58 @@
+{% extends "tracker/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="ml-4 max-w-6xl space-y-8">
+    {% if selected_league %}
+        <div class="flex items-center gap-6 pb-6 border-b border-slate-800 mb-8">
+            <h2 class="text-3xl font-black text-white tracking-tighter uppercase">Partidos</h2>
+            <span class="text-slate-400">{{ selected_league.name }}</span>
+        </div>
+
+        <div class="flex gap-4">
+            <!-- Temporada -->
+            <div class="flex-1 p-6 bg-slate-900/50 border border-slate-800 rounded-[2rem] space-y-4">
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Temporada</p>
+                <div class="relative" id="dropdown-wrapper-season">
+                    <button id="btn-season" type="button" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white font-bold text-left hover:border-green-500 transition-all flex items-center justify-between">
+                        <span id="season-label-text">Seleccionar...</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                        </svg>
+                    </button>
+                    <div id="dropdown-season" class="hidden absolute left-0 top-full mt-1 z-50 w-full bg-slate-900 border border-slate-700 rounded-xl overflow-y-auto shadow-2xl" style="max-height:200px;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jornada -->
+            <div class="flex-1 p-6 bg-slate-900/50 border border-slate-800 rounded-[2rem] space-y-4">
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Jornada</p>
+                <div class="relative" id="dropdown-wrapper-round">
+                    <button id="btn-round" type="button" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white font-bold text-left hover:border-green-500 transition-all flex items-center justify-between">
+                        <span id="round-label-text">Seleccionar...</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                        </svg>
+                    </button>
+                    <div id="dropdown-round" class="hidden absolute left-0 top-full mt-1 z-50 w-full bg-slate-900 border border-slate-700 rounded-xl overflow-y-auto shadow-2xl" style="max-height:200px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="matches-container" class="space-y-3">
+            <p class="text-slate-400">Cargando partidos...</p>
+        </div>
+
+    {% else %}
+        <div class="h-[50vh] flex items-center">
+            <p class="text-slate-500 font-mono text-[10px] uppercase tracking-widest">
+                <-- Selecciona una competición
+            </p>
+        </div>
+    {% endif %}
+
+    <script src="{% static 'tracker/js/partidos.js' %}"></script>
+</div>
+{% endblock %}
