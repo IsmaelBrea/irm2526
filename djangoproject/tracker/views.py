@@ -14,6 +14,7 @@ from .services import (
     fetch_standings,
     fetch_players_by_league,
     calculate_irm_probability,
+    fetch_matches_besoccer,
 )
 
 
@@ -165,3 +166,45 @@ def get_player_stats(request):
         return JsonResponse({"status": "success", "data": data})
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+def get_league_matches(request):
+    """Retorna partidos de una liga"""
+    league_id = request.GET.get("league_id")
+    round_num = request.GET.get("round")
+
+    if not league_id:
+        return JsonResponse(
+            {"status": "error", "message": "league_id required"}, status=400
+        )
+
+    try:
+        league_id = int(league_id)
+        matches = fetch_matches_besoccer(league_id, round_num)
+        return JsonResponse({"status": "success", "data": matches})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+class PartidosView(generic.TemplateView):
+    template_name = "tracker/partidos.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        all_leagues = fetch_competitions()
+        target_ids = [2001, 2000, 2021, 2014, 2019, 2002, 2015]
+        leagues = [league for league in all_leagues if league["id"] in target_ids]
+        context["leagues"] = leagues
+
+        selected_league_id = self.request.GET.get("league")
+        selected_league = None
+
+        if selected_league_id:
+            for league in leagues:
+                if str(league["id"]) == selected_league_id:
+                    selected_league = league
+                    break
+
+        context["selected_league"] = selected_league
+        return context
