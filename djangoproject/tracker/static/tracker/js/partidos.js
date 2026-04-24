@@ -15,8 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentYear = new Date().getFullYear();
     let totalRoundsForSeason = 0; 
 
-    seasonBtn.dataset.year = currentYear;
-    roundBtn.dataset.round = 1;
+
 
     function toggleDropdown(btn, dropdown) {
         btn.addEventListener('click', () => {
@@ -30,25 +29,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 function loadMatches(skipRoundFilter = false) {
-    const year = seasonBtn.dataset.year;
-    const round = skipRoundFilter ? null : roundBtn.dataset.round;
     let url = `/tracker/api/league-matches/?league_id=${leagueId}`;
-    if (year) url += `&year=${year}`;
-    if (round && !skipRoundFilter) url += `&round=${round}`;
+    
+    // Solo agregar parámetros si ya está inicializado
+    if (seasonBtn.dataset.year && roundBtn.dataset.round) {
+        url += `&year=${seasonBtn.dataset.year}&round=${roundBtn.dataset.round}`;
+    }
 
     fetch(url)
         .then(r => r.json())
         .then(data => {
             if (data.status === 'success' && data.data.length > 0) {
-                // Si es una carga sin filtro de round, actualizar totalRounds
-                if (skipRoundFilter) {
-                    const matchesInSeason = data.data.filter(m => parseInt(m.year) === parseInt(year));
-                    if (matchesInSeason.length > 0) {
-                        totalRoundsForSeason = Math.max(...matchesInSeason.map(m => parseInt(m.round)));
-                    }
-                }
-                
                 allMatches = data.data;
+
+                // Si es carga inicial (sin year/round definidos)
+                if (!seasonBtn.dataset.year && !roundBtn.dataset.round) {
+                    const firstMatch = data.data[0];
+                    seasonBtn.dataset.year = parseInt(firstMatch.year);
+                    roundBtn.dataset.round = parseInt(firstMatch.round);
+                    seasonLabelText.textContent = `${firstMatch.year - 1}/${firstMatch.year}`;
+                    roundLabelText.textContent = `Jornada ${firstMatch.round}`;
+                }
                 
                 if (!seasonsLoaded) {
                     const startYear = 2010;
