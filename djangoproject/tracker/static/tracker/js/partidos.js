@@ -1,77 +1,125 @@
 document.addEventListener('DOMContentLoaded', function() {
     const leagueId = new URLSearchParams(window.location.search).get('league');
-    const seasonFilter = document.getElementById('season-filter');
-    const roundFilter = document.getElementById('round-filter');
+    const seasonBtn = document.getElementById('btn-season');
+    const roundBtn = document.getElementById('btn-round');
+    const seasonDropdown = document.getElementById('dropdown-season');
+    const roundDropdown = document.getElementById('dropdown-round');
+    const seasonLabelText = document.getElementById('season-label-text');
+    const roundLabelText = document.getElementById('round-label-text');
     const matchesContainer = document.getElementById('matches-container');
 
     if (!leagueId) return;
 
     let seasonsLoaded = false;
-    let roundsLoaded = false;
     let allMatches = [];
+    let currentYear = new Date().getFullYear();
+    let totalRoundsForSeason = 0; 
 
-    function loadMatches() {
-        const year = seasonFilter.value;
-        const round = roundFilter.value;
-        let url = `/tracker/api/league-matches/?league_id=${leagueId}`;
-        if (year) url += `&year=${year}`;
-        if (round) url += `&round=${round}`;
+    seasonBtn.dataset.year = currentYear;
+    roundBtn.dataset.round = 1;
 
-        fetch(url)
-            .then(r => r.json())
-            .then(data => {
-                if (data.status === 'success' && data.data.length > 0) {
-                    allMatches = data.data;
+    function toggleDropdown(btn, dropdown) {
+        btn.addEventListener('click', () => {
+            dropdown.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    }
+
+function loadMatches(skipRoundFilter = false) {
+    const year = seasonBtn.dataset.year;
+    const round = skipRoundFilter ? null : roundBtn.dataset.round;
+    let url = `/tracker/api/league-matches/?league_id=${leagueId}`;
+    if (year) url += `&year=${year}`;
+    if (round && !skipRoundFilter) url += `&round=${round}`;
+
+    fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success' && data.data.length > 0) {
+                // Si es una carga sin filtro de round, actualizar totalRounds
+                if (skipRoundFilter) {
+                    const matchesInSeason = data.data.filter(m => parseInt(m.year) === parseInt(year));
+                    if (matchesInSeason.length > 0) {
+                        totalRoundsForSeason = Math.max(...matchesInSeason.map(m => parseInt(m.round)));
+                    }
+                }
+                
+                allMatches = data.data;
+                
+                if (!seasonsLoaded) {
+                    const startYear = 2010;
+                    const years = [];
                     
-                    if (!seasonsLoaded) {
-    const currentYear = new Date().getFullYear();
-    const startYear = 2010;
-    const years = [];
+                    for (let y = currentYear; y >= startYear; y--) {
+                        years.push(y);
+                    }
+                    
+                    seasonDropdown.innerHTML = '';
+                    years.forEach(y => {
+                        const div = document.createElement('div');
+                        const prevYear = y - 1;
+                        div.className = 'px-4 py-2 text-xs text-slate-300 cursor-pointer hover:bg-slate-800 hover:text-green-500 transition-colors';
+                        div.textContent = `${prevYear}/${y}`;
+                        div.addEventListener('click', () => {
+                            seasonBtn.dataset.year = y;
+                            seasonLabelText.textContent = `${prevYear}/${y}`;
+                            seasonDropdown.classList.add('hidden');
+                            roundDropdown.innerHTML = '';
+                            loadMatches(true); 
+                        });
+                        seasonDropdown.appendChild(div);
+                    });
+                    
+                    seasonLabelText.textContent = `${currentYear - 1}/${currentYear}`;
+                    seasonsLoaded = true;
+                }
+
+                const matchesInSeason = allMatches.filter(m => parseInt(m.year) === parseInt(seasonBtn.dataset.year));
+                
+                if (matchesInSeason.length > 0) {
     
-    for (let y = currentYear; y >= startYear; y--) {
-        years.push(y);
+    if (skipRoundFilter) {
+        totalRoundsForSeason = parseInt(matchesInSeason[0].total_rounds);
+        roundDropdown.innerHTML = ''; // Limpiar
+        for (let i = 1; i <= totalRoundsForSeason; i++) {
+            const div = document.createElement('div');
+            div.className = 'px-4 py-2 text-xs text-slate-300 cursor-pointer hover:bg-slate-800 hover:text-green-500 transition-colors';
+            div.textContent = `Jornada ${i}`;
+            div.addEventListener('click', () => {
+                roundBtn.dataset.round = i;
+                roundLabelText.textContent = `Jornada ${i}`;
+                roundDropdown.classList.add('hidden');
+                loadMatches();
+            });
+            roundDropdown.appendChild(div);
+        }
     }
     
-    seasonFilter.innerHTML = '';
-    
-    years.forEach(y => {
-        const option = document.createElement('option');
-        option.value = y;
-        const prevYear = parseInt(y) - 1;
-        option.textContent = `${prevYear}/${y}`;
-        seasonFilter.appendChild(option);
-    });
-    
-    seasonFilter.value = currentYear;
-    seasonsLoaded = true;
+const currentRound = parseInt(matchesInSeason[0].round);
+
+// Solo actualizar en la primera carga, no cuando cambias de año
+if (skipRoundFilter && roundBtn.dataset.round === '1') {
+    roundBtn.dataset.round = currentRound;
+    roundLabelText.textContent = `Jornada ${currentRound}`;
 }
 
-                    const matchesInSeason = allMatches.filter(m => m.year === seasonFilter.value);
-                    const totalRounds = Math.max(...matchesInSeason.map(m => parseInt(m.round)));
-                    
-                    if (!roundsLoaded || seasonFilter.value) {
-                        roundFilter.innerHTML = '';
-                        
-                        for (let i = 1; i <= totalRounds; i++) {
-                            const option = document.createElement('option');
-                            option.value = i;
-                            option.textContent = `${i}`;
-                            roundFilter.appendChild(option);
-                        }
-                        
-                        roundFilter.value = matchesInSeason[0].round;
-                        roundsLoaded = true;
-                    }
-
-                    renderMatches(matchesInSeason);
-                } else {
-                    matchesContainer.innerHTML = '<p class="text-slate-400">No hay partidos disponibles</p>';
+const matchesInRound = matchesInSeason.filter(m => parseInt(m.round) === parseInt(roundBtn.dataset.round));
+renderMatches(matchesInRound);
+} else {
+                    matchesContainer.innerHTML = '<p class="text-slate-400">No hay partidos para esta temporada</p>';
                 }
-            })
-            .catch(e => {
-                matchesContainer.innerHTML = `<p class="text-red-400">Error: ${e.message}</p>`;
-            });
-    }
+            } else {
+                matchesContainer.innerHTML = '<p class="text-slate-400">No hay partidos disponibles</p>';
+            }
+        })
+        .catch(e => {
+            matchesContainer.innerHTML = `<p class="text-red-400">Error: ${e.message}</p>`;
+        });
+}
 
     function renderMatches(matches) {
         matchesContainer.innerHTML = '';
@@ -116,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    seasonFilter.addEventListener('change', loadMatches);
-    roundFilter.addEventListener('change', loadMatches);
-    loadMatches();
+    toggleDropdown(seasonBtn, seasonDropdown);
+    toggleDropdown(roundBtn, roundDropdown);
+    loadMatches(true);
 });
