@@ -409,3 +409,18 @@ def fetch_players_by_league(league_id):
             print(f"Error fetching team {team_id}: {e}")
 
     return players
+
+
+def fetch_player_person(player_id):
+    """Obtiene datos del jugador incluyendo competiciones actuales"""
+    url = f"{BASE_URL}persons/{player_id}"
+    headers = {"X-Auth-Token": token_pool.get_token()}
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        return data
+    except Exception as e:
+        print(f"Error fetching player: {e}")
+        return None
