@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
         ['display-local', 'display-visitor'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
-                el.innerText = '[ SIN SELECCIÓN ]';
+                el.innerHTML = '[ SIN SELECCIÓN ]';
                 el.className = "h-14 border border-dashed border-slate-800 rounded-[1.2rem] flex items-center justify-center text-slate-500 text-[10px] uppercase font-mono px-6 text-center transition-all duration-300";
             }
         });
@@ -66,8 +66,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         dropdown.querySelectorAll('.team-option').forEach(option => {
             option.addEventListener('click', function () {
-                const id   = this.dataset.id;
-                const name = this.dataset.name;
+                const id    = this.dataset.id;
+                const name  = this.dataset.name;
+                const crest = this.dataset.crest;
 
                 const otherSearch = hiddenInputId === 'select-local' ? 'search-visitor' : 'search-local';
                 const otherName   = document.getElementById(otherSearch).value;
@@ -77,10 +78,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     return;
                 }
 
-                hidden.value      = id;
-                searchInp.value   = name;
-                display.innerText = name;
-                display.className = "h-14 border border-dashed border-green-500/40 bg-green-500/5 rounded-[1.2rem] flex items-center justify-center text-green-500 text-xs font-black uppercase font-mono px-6 text-center shadow-inner";
+                hidden.value    = id;
+                searchInp.value = name;
+                display.innerHTML = crest
+                    ? `<img src="${crest}" class="w-8 h-8 object-contain mr-3" alt="${name}"><span>${name}</span>`
+                    : `<span>${name}</span>`;
+                display.className = "h-14 border border-dashed border-green-500/40 bg-green-500/5 rounded-[1.2rem] flex items-center justify-center text-green-500 text-xs font-black uppercase font-mono px-6 text-center shadow-inner gap-2";
                 dropdown.classList.add('hidden');
             });
         });
@@ -122,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         [lInp.value,      vInp.value]      = [vInp.value,      lInp.value];
         [lSel.value,      vSel.value]      = [vSel.value,      lSel.value];
-        [lDisp.innerText, vDisp.innerText] = [vDisp.innerText, lDisp.innerText];
+        [lDisp.innerHTML, vDisp.innerHTML] = [vDisp.innerHTML, lDisp.innerHTML];
         [lDisp.className, vDisp.className] = [vDisp.className, lDisp.className];
     });
 
@@ -172,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
         Plotly.newPlot('chart-bars', [traceA, traceB], layout, PLOTLY_CONFIG);
     }
 
-    // ── ÚLTIMOS 5 RESULTADOS lado a lado ──
+    // ── ÚLTIMOS RESULTADOS lado a lado ──
     function renderLastResults(h2hMatches) {
         const box = document.getElementById('h2h-matches');
         console.log(box);
