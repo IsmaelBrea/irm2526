@@ -2,7 +2,7 @@
 [//]: # (Member1: Ismael Brea Arias::ismael.brea@udc.es)
 [//]: # (Member2: Ruben González Ouzounis::ruben.gonzalez.ouzounis@udc.es)
 [//]: # (Member3: Manuel Valiña Pérez::manuel.valina.perez@udc.es)
-[//]: # (Teacher: Alonso Rodríguez Iglesias)
+[//]: # (Teacher: AR)
 <!-- Si quereis hacerle un logo (con IA o como prefirais) ya es lucirse y queda muy bien :) -->
 <img width="300" src="https://github.com/user-attachments/assets/bdbafec2-f468-4623-9175-80f9ed86fd1c" align="right"/>
 
