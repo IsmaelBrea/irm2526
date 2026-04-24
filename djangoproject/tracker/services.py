@@ -138,15 +138,19 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
 
             # Goles Favor y Contra
             df["gf"] = df.apply(
-                lambda r: r["score"]["fullTime"]["home"]
-                if r["is_home"]
-                else r["score"]["fullTime"]["away"],
+                lambda r: (
+                    r["score"]["fullTime"]["home"]
+                    if r["is_home"]
+                    else r["score"]["fullTime"]["away"]
+                ),
                 axis=1,
             )
             df["gc"] = df.apply(
-                lambda r: r["score"]["fullTime"]["away"]
-                if r["is_home"]
-                else r["score"]["fullTime"]["home"],
+                lambda r: (
+                    r["score"]["fullTime"]["away"]
+                    if r["is_home"]
+                    else r["score"]["fullTime"]["home"]
+                ),
                 axis=1,
             )
 
@@ -171,10 +175,12 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
             # Efectividad
             if len(df) > 0:
                 wins = df.apply(
-                    lambda r: 1
-                    if (r["is_home"] and r["score"]["winner"] == "HOME_TEAM")
-                    or (not r["is_home"] and r["score"]["winner"] == "AWAY_TEAM")
-                    else 0,
+                    lambda r: (
+                        1
+                        if (r["is_home"] and r["score"]["winner"] == "HOME_TEAM")
+                        or (not r["is_home"] and r["score"]["winner"] == "AWAY_TEAM")
+                        else 0
+                    ),
                     axis=1,
                 ).sum()
 
@@ -471,3 +477,41 @@ def fetch_player_person(player_id):
     except Exception as e:
         print(f"Error fetching player: {e}")
         return None
+
+
+LEAGUE_ID_MAP = {
+    2001: 107,  # Champions League
+    2014: 1,  # Primera División
+    2019: 7,  # Serie A
+    2021: 10,  # Premier League
+    2000: 136,  # Mundial
+    2002: 8,  # Bundesliga
+    2015: 16,  # Ligue 1
+}
+
+
+def fetch_matches_besoccer(league_id, round_num=None, year=None):
+    """Obtiene partidos de una liga desde besoccerapps API"""
+    besoccer_league_id = LEAGUE_ID_MAP.get(league_id)
+
+    if not besoccer_league_id:
+        return []
+
+    api_key = os.getenv("BESOCCER_API_KEY")
+
+    url = f"http://apiclient.besoccerapps.com/scripts/api/api.php?format=json&req=matchs&tz=Europe/Madrid&key={api_key}&league={besoccer_league_id}"
+
+    if year:
+        url += f"&year={year}"
+
+    if round_num:
+        url += f"&round={round_num}"
+
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("match", [])
+    except Exception as e:
+        print(f"Error fetching matches from besoccer: {e}")
+        return []
