@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from urllib3 import request
 from .services import (
     fetch_competitions,
-    fetch_player_matches,
+    fetch_player_person,
     fetch_teams,
     fetch_scorers,
     fetch_competitions,
@@ -145,7 +145,7 @@ class DatosJugadorView(generic.TemplateView):
 
 
 def get_player_stats(request):
-    """Retorna estadísticas de partidos de un jugador en JSON"""
+    """Retorna competiciones del jugador"""
     player_id = request.GET.get("player_id")
 
     if not player_id:
@@ -154,7 +154,7 @@ def get_player_stats(request):
         )
 
     try:
-        data = fetch_player_matches(player_id)
+        data = fetch_player_person(player_id)
 
         if data is None:
             return JsonResponse(

@@ -27,7 +27,7 @@
         {{ players|json_script:"playersData" }}
 <div class="grid grid-cols-2 gap-6">
 
-<!-- Información (fija) -->
+<!-- Información -->
 <div id="info-container" class="hidden bg-slate-900/50 border border-slate-800 rounded-lg p-6">
     <h3 class="text-lg font-bold text-green-500 uppercase tracking-wider mb-4">Información</h3>
     <div class="space-y-3">
@@ -56,55 +56,15 @@
 </div>
     </div>
 </div>
-<!-- Estadísticas (fijas) -->
-<div id="stats-container" class="hidden bg-slate-900/50 border border-slate-800 rounded-lg p-6">
-    <h3 class="text-lg font-bold text-green-500 uppercase tracking-wider mb-4">Últimos 5 Partidos</h3>
-    <div class="grid grid-cols-2 gap-4">
-        <div class="bg-slate-800/50 p-4 rounded">
-            <p class="text-slate-400 text-xs">Partidos</p>
-            <p class="text-white font-bold text-lg" id="stat-matches">-</p>
-        </div>
-        <div class="bg-slate-800/50 p-4 rounded">
-            <p class="text-slate-400 text-xs">11 Titular</p>
-            <p class="text-white font-bold text-lg" id="stat-starting">-</p>
-        </div>
-        <div class="bg-slate-800/50 p-4 rounded">
-            <p class="text-slate-400 text-xs">Minutos jugados</p>
-            <p class="text-white font-bold text-lg" id="stat-minutes">-</p>
-        </div>
-        <div class="bg-slate-800/50 p-4 rounded">
-            <p class="text-slate-400 text-xs">Goles</p>
-            <p class="text-white-400 font-bold text-lg" id="stat-goals">-</p>
-        </div> 
-        <div class="bg-slate-800/50 p-4 rounded">
-            <p class="text-slate-400 text-xs">Penaltis</p>
-            <p class="text-white font-bold text-lg" id="stat-penalties">-</p>
-        </div>
-        <div class="bg-slate-800/50 p-4 rounded">
-            <p class="text-slate-400 text-xs">Asistencias</p>
-            <p class="text-white-400 font-bold text-lg" id="stat-assists">-</p>
-        </div>
-        <div class="bg-slate-800/50 p-4 rounded">
-            <p class="text-slate-400 text-xs">Tarjetas Amarillas</p>
-            <p class="text-yellow-400 font-bold text-lg" id="stat-yellow">-</p>
-        </div>
-        <div class="bg-slate-800/50 p-4 rounded">
-            <p class="text-slate-400 text-xs">Tarjetas Rojas</p>
-            <p class="text-red-400 font-bold text-lg" id="stat-red">-</p>
-        </div>
-       
+<!-- Competiciones -->
+<div id="competitions-container" class="hidden bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+    <h3 class="text-lg font-bold text-green-500 uppercase tracking-wider mb-4">Competiciones Actuales</h3>
+    <div id="competitions-list" class="space-y-2">
     </div>
 </div>
 
 </div>
-<!-- Trayectoria (fija) -->
-<div id="trajectory-container" class="hidden bg-slate-900/50 border border-slate-800 rounded-lg p-6">
-    <h3 class="text-lg font-bold text-green-500 uppercase tracking-wider mb-4">Trayectoria</h3>
-    <div class="space-y-3">
-        <!-- Contenido de trayectoria irá aquí -->
-    </div>
-</div>
- 
+
         <script src="{% static 'tracker/js/player_search.js' %}"></script>
 
     {% else %}
