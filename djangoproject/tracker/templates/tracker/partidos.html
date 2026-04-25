@@ -49,13 +49,11 @@
             <p class="text-slate-400">Cargando partidos...</p>
         </div>
 
-    {% else %}
-        <div class="h-[50vh] flex items-center">
-            <p class="text-slate-500 font-mono text-[10px] uppercase tracking-widest">
-                <-- Selecciona una competición
-            </p>
-        </div>
-    {% endif %}
+   {% else %}
+    <div class="w-full h-[50vh] flex items-center justify-center border-2 border-dashed border-slate-800/50 rounded-[3rem]">
+        <p class="irm-placeholder text-center">&larr; Selecciona competición en el menú lateral</p>
+    </div>
+{% endif %}
 
     <script src="{% static 'tracker/js/partidos.js' %}"></script>
 </div>
