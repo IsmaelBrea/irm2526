@@ -15,6 +15,10 @@ from .services import (
     fetch_players_by_league,
     calculate_irm_probability,
     fetch_matches_besoccer,
+    fetch_assists,
+    fetch_red_cards,
+    fetch_yellow_cards,
+    merge_and_sort_infractions,
 )
 
 
@@ -96,6 +100,8 @@ class RendIndividualView(generic.TemplateView):
         selected_league = None
         scorers = []
         standings = []
+        assists = []
+        total_cards = []
 
         if selected_league_id:
             for league in leagues:
@@ -104,16 +110,26 @@ class RendIndividualView(generic.TemplateView):
                     season = selected_league["currentSeason"]["startDate"][:4]
 
                     scorers = fetch_scorers(league["code"], season)
+
+                    assists = fetch_assists(int(selected_league_id), season)
+
                     standings = fetch_standings(league["code"], season)
+
+                    yellow_cards = fetch_yellow_cards(int(selected_league_id), season)
+                    red_cards_raw = fetch_red_cards(int(selected_league_id), season)
+                    total_cards = merge_and_sort_infractions(
+                        red_cards_raw, yellow_cards
+                    )
 
                     break
 
-            # Si hay liga, traemos equipos (Funcionalidad F2)
             context["teams"] = fetch_teams(selected_league_id)
 
         context["selected_league"] = selected_league
         context["scorers"] = scorers
+        context["assists"] = assists
         context["standings"] = standings
+        context["total_cards"] = total_cards
         return context
 
 

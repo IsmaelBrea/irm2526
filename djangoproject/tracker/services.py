@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import os
 from dotenv import load_dotenv
+import http.client
+import json
 
 load_dotenv()
 
@@ -307,10 +309,10 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
 
                     home_name = m["homeTeam"]["name"]
                     away_name = m["awayTeam"]["name"]
-                    score_h   = m["score"]["fullTime"]["home"]
-                    score_av  = m["score"]["fullTime"]["away"]
-                    winner    = m["score"]["winner"]
-                    date      = m.get("utcDate", "")[:10]
+                    score_h = m["score"]["fullTime"]["home"]
+                    score_av = m["score"]["fullTime"]["away"]
+                    winner = m["score"]["winner"]
+                    date = m.get("utcDate", "")[:10]
 
                     res_status = "draw"
                     if winner == "HOME_TEAM":
@@ -318,15 +320,21 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
                     elif winner == "AWAY_TEAM":
                         res_status = "away"
 
-                    result.append({
-                        "date":      date,
-                        "home":      home_name,
-                        "away":      away_name,
-                        "score":     f"{score_h}-{score_av}" if score_h is not None else "?-?",
-                        "result":    res_status,
-                        "local_won": (winner == "HOME_TEAM" and home_id == ta_id)
-                                    or (winner == "AWAY_TEAM" and away_id == ta_id),
-                    })
+                    result.append(
+                        {
+                            "date": date,
+                            "home": home_name,
+                            "away": away_name,
+                            "score": (
+                                f"{score_h}-{score_av}"
+                                if score_h is not None
+                                else "?-?"
+                            ),
+                            "result": res_status,
+                            "local_won": (winner == "HOME_TEAM" and home_id == ta_id)
+                            or (winner == "AWAY_TEAM" and away_id == ta_id),
+                        }
+                    )
 
                     if len(result) >= 5:
                         break
@@ -515,3 +523,178 @@ def fetch_matches_besoccer(league_id, round_num=None, year=None):
     except Exception as e:
         print(f"Error fetching matches from besoccer: {e}")
         return []
+
+
+LEAGUE_ID_MAPPING = {
+    2001: 2,  # Champions League
+    2014: 140,  # Primera División
+    2019: 135,  # Serie A
+    2021: 39,  # Premier League
+    2000: 1,  # Mundial
+    2002: 218,  # Bundesliga
+    2015: 102,  # Ligue 1
+}
+
+
+def fetch_assists(league_id_football_data, season):
+    """
+    Obtiene los máximos asistentes usando API-Sports
+    """
+    league_id_apisports = LEAGUE_ID_MAPPING.get(league_id_football_data)
+
+    if not league_id_apisports:
+        return []
+
+    api_key = os.getenv("APISPORTS_KEY", "")
+
+    if not api_key:
+        return []
+
+    url = "https://v3.football.api-sports.io/players/topassists"
+    headers = {"x-apisports-key": api_key}
+    # El plan gratuito solo permite 2022-2024, así que usamos 2024
+    params = {"season": "2024", "league": league_id_apisports}
+
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        data = response.json()
+        assists = data.get("response", [])
+        return assists
+    except Exception as e:
+        print(f"Error fetching assists: {e}")
+        return []
+
+
+def fetch_red_cards(league_id_football_data, season):
+    """
+    Obtiene los máximos infractores (tarjetas rojas) usando API-Sports
+    """
+    league_id_apisports = LEAGUE_ID_MAPPING.get(league_id_football_data)
+
+    if not league_id_apisports:
+        return []
+
+    api_key = os.getenv("APISPORTS_KEY", "")
+
+    if not api_key:
+        return []
+
+    url = "https://v3.football.api-sports.io/players/topredcards"
+    headers = {"x-apisports-key": api_key}
+    params = {"season": "2024", "league": league_id_apisports}
+
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("response", [])
+    except Exception as e:
+        print(f"Error fetching red cards: {e}")
+        return []
+
+
+def fetch_yellow_cards(league_id_football_data, season):
+    """
+    Obtiene los máximos amonestados (tarjetas amarillas) usando API-Sports
+    """
+    league_id_apisports = LEAGUE_ID_MAPPING.get(league_id_football_data)
+
+    if not league_id_apisports:
+        return []
+
+    api_key = os.getenv("APISPORTS_KEY", "")
+
+    if not api_key:
+        return []
+
+    url = "https://v3.football.api-sports.io/players/topyellowcards"
+    headers = {"x-apisports-key": api_key}
+    params = {"season": "2024", "league": league_id_apisports}
+
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("response", [])
+    except Exception as e:
+        print(f"Error fetching yellow cards: {e}")
+        return []
+
+
+def merge_and_sort_infractions(red_cards_data, yellow_cards_data):
+    """
+    Merges red and yellow cards data and sorts by combined total (amarillas + rojas)
+    """
+    import pandas as pd
+
+    if not red_cards_data or not yellow_cards_data:
+        return red_cards_data if red_cards_data else []
+
+    try:
+        red_df = pd.DataFrame(
+            [
+                {
+                    "player_id": card["player"]["id"],
+                    "player": card["player"],
+                    "statistics": card["statistics"],
+                    "red": (
+                        card["statistics"][0]["cards"]["red"]
+                        if card.get("statistics")
+                        else 0
+                    ),
+                    "yellow": (
+                        card["statistics"][0]["cards"]["yellow"]
+                        if card.get("statistics")
+                        else 0
+                    ),
+                }
+                for card in red_cards_data
+            ]
+        )
+
+        yellow_df = pd.DataFrame(
+            [
+                {
+                    "player_id": card["player"]["id"],
+                    "yellow": (
+                        card["statistics"][0]["cards"]["yellow"]
+                        if card.get("statistics")
+                        else 0
+                    ),
+                }
+                for card in yellow_cards_data
+            ]
+        )
+
+        merged = red_df.merge(
+            yellow_df[["player_id", "yellow"]],
+            on="player_id",
+            how="left",
+            suffixes=("_red", "_yellow"),
+        )
+
+        merged["yellow"] = merged["yellow_yellow"].fillna(merged["yellow_red"])
+
+        merged["total_infractions"] = merged["red"] + merged["yellow"]
+
+        merged = merged.sort_values("total_infractions", ascending=False).reset_index(
+            drop=True
+        )
+
+        result = []
+        for _, row in merged.iterrows():
+            card_obj = {
+                "player": row["player"],
+                "statistics": row["statistics"],
+            }
+            # Update the cards data with the merged values
+            if card_obj["statistics"]:
+                card_obj["statistics"][0]["cards"]["yellow"] = int(row["yellow"])
+                card_obj["statistics"][0]["cards"]["red"] = int(row["red"])
+            result.append(card_obj)
+
+        return result
+    except Exception as e:
+        print(f"Error merging infractions: {e}")
+        return red_cards_data
