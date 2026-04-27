@@ -63,17 +63,17 @@
                 </button>
             </div>
         </div>
-        {% else %}
-<h3 class="text-xl font-bold text-green-500 uppercase tracking-wider mb-4">Máximos Goleadores</h3>
-<div class="max-w-6xl">
-    <div class="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden p-6">
-        <p class="text-slate-500 font-mono text-[10px] uppercase tracking-widest text-center">No hay datos de goleadores disponibles</p>
-    </div>
+    {% else %}
+    <div class="flex-1">
+        <h3 class="text-xl font-bold text-green-500 uppercase tracking-wider mb-4">Máximos Goleadores</h3>
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden p-6">
+            <p class="text-slate-500 font-mono text-[10px] uppercase tracking-widest text-center">No hay datos de goleadores disponibles</p>
         </div>
-</div>
-{% endif %}
-<div class="flex-1">
-        {% if assists %}
+    </div>
+    {% endif %}
+    
+    {% if assists %}
+    <div class="flex-1">
         <h3 class="text-xl font-bold text-blue-500 uppercase tracking-wider mb-4">Máximos Asistentes</h3>
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden">
             <table class="w-full text-sm">
@@ -88,7 +88,7 @@
                 <tbody>
                     {% for assist in assists|slice:":10" %}
                     <tr class="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors assists-row" 
-    {% if forloop.counter > 5 %}style="display:none;" data-hidden="true"{% endif %}>
+                        {% if forloop.counter > 5 %}style="display:none;" data-hidden="true"{% endif %}>
                         <td class="px-4 py-3 text-blue-500 font-bold">{{ forloop.counter }}</td>
                         <td class="px-4 py-3">
                             <div>
@@ -114,11 +114,17 @@
             <button id="toggle-assists" class="w-full border-t border-slate-800 px-4 py-3 text-[10px] font-bold bg-slate-900/50 text-blue-400 hover:bg-slate-800/50 transition-colors rounded-b-2xl">
                 Ver más
             </button>
-
         </div>
+    </div>
+    {% else %}
+    <div class="flex-1">
+        <h3 class="text-xl font-bold text-blue-500 uppercase tracking-wider mb-4">Máximos Asistentes</h3>
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden p-6">
+            <p class="text-slate-500 font-mono text-[10px] uppercase tracking-widest text-center">No hay datos de asistentes disponibles</p>
         </div>
-        {% endif %}
-        {% if total_cards %}
+    </div>
+    {% endif %}
+    {% if total_cards %}
     <div class="flex-1">
         <h3 class="text-xl font-bold text-red-500 uppercase tracking-wider mb-4">Máximas Infracciones</h3>
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden">
@@ -164,6 +170,13 @@
             <button id="toggle-cards" class="w-full border-t border-slate-800 px-4 py-3 text-[10px] font-bold bg-slate-900/50 text-red-400 hover:bg-slate-800/50 transition-colors rounded-b-2xl">
                 Ver más
             </button>
+        </div>
+    </div>
+    {% else %}
+    <div class="flex-1">
+        <h3 class="text-xl font-bold text-red-500 uppercase tracking-wider mb-4">Máximas Infracciones</h3>
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden p-6">
+            <p class="text-slate-500 font-mono text-[10px] uppercase tracking-widest text-center">No hay datos de infracciones disponibles</p>
         </div>
     </div>
     {% endif %}
