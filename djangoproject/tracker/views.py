@@ -15,6 +15,7 @@ from .services import (
     fetch_players_by_league,
     calculate_irm_probability,
     fetch_matches_besoccer,
+    fetch_assists,
 )
 
 
@@ -96,6 +97,7 @@ class RendIndividualView(generic.TemplateView):
         selected_league = None
         scorers = []
         standings = []
+        assists = []
 
         if selected_league_id:
             for league in leagues:
@@ -104,6 +106,9 @@ class RendIndividualView(generic.TemplateView):
                     season = selected_league["currentSeason"]["startDate"][:4]
 
                     scorers = fetch_scorers(league["code"], season)
+
+                    assists = fetch_assists(int(selected_league_id), season)
+
                     standings = fetch_standings(league["code"], season)
 
                     break
@@ -113,6 +118,8 @@ class RendIndividualView(generic.TemplateView):
 
         context["selected_league"] = selected_league
         context["scorers"] = scorers
+        context["assists"] = assists
+
         context["standings"] = standings
         return context
 

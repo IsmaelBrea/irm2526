@@ -14,6 +14,21 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleScorersBtn.textContent = scorersExpanded ? 'Ver menos' : 'Ver más';
         });
     }
+        // Toggle Assists
+   const toggleAssistsBtn = document.getElementById('toggle-assists');
+if (toggleAssistsBtn) {
+    const assistRows = document.querySelectorAll('.assists-row');
+    let assistsExpanded = false;
+    toggleAssistsBtn.addEventListener('click', function() {
+        assistsExpanded = !assistsExpanded;
+        assistRows.forEach(row => {
+            if (row.getAttribute('data-hidden') === 'true') {
+                row.style.display = assistsExpanded ? 'table-row' : 'none';
+            }
+        });
+        toggleAssistsBtn.textContent = assistsExpanded ? 'Ver menos' : 'Ver más';
+    });
+}
 
     // Toggle Standings
     const toggleBtn = document.getElementById('toggle-standings');
