@@ -592,3 +592,109 @@ def fetch_red_cards(league_id_football_data, season):
     except Exception as e:
         print(f"Error fetching red cards: {e}")
         return []
+
+
+def fetch_yellow_cards(league_id_football_data, season):
+    """
+    Obtiene los máximos amonestados (tarjetas amarillas) usando API-Sports
+    """
+    league_id_apisports = LEAGUE_ID_MAPPING.get(league_id_football_data)
+
+    if not league_id_apisports:
+        return []
+
+    api_key = os.getenv("APISPORTS_KEY", "")
+
+    if not api_key:
+        return []
+
+    url = "https://v3.football.api-sports.io/players/topyellowcards"
+    headers = {"x-apisports-key": api_key}
+    params = {"season": "2024", "league": league_id_apisports}
+
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("response", [])
+    except Exception as e:
+        print(f"Error fetching yellow cards: {e}")
+        return []
+
+
+def merge_and_sort_infractions(red_cards_data, yellow_cards_data):
+    """
+    Merges red and yellow cards data and sorts by combined total (amarillas + rojas)
+    """
+    import pandas as pd
+
+    if not red_cards_data or not yellow_cards_data:
+        return red_cards_data if red_cards_data else []
+
+    try:
+        red_df = pd.DataFrame(
+            [
+                {
+                    "player_id": card["player"]["id"],
+                    "player": card["player"],
+                    "statistics": card["statistics"],
+                    "red": (
+                        card["statistics"][0]["cards"]["red"]
+                        if card.get("statistics")
+                        else 0
+                    ),
+                    "yellow": (
+                        card["statistics"][0]["cards"]["yellow"]
+                        if card.get("statistics")
+                        else 0
+                    ),
+                }
+                for card in red_cards_data
+            ]
+        )
+
+        yellow_df = pd.DataFrame(
+            [
+                {
+                    "player_id": card["player"]["id"],
+                    "yellow": (
+                        card["statistics"][0]["cards"]["yellow"]
+                        if card.get("statistics")
+                        else 0
+                    ),
+                }
+                for card in yellow_cards_data
+            ]
+        )
+
+        merged = red_df.merge(
+            yellow_df[["player_id", "yellow"]],
+            on="player_id",
+            how="left",
+            suffixes=("_red", "_yellow"),
+        )
+
+        merged["yellow"] = merged["yellow_yellow"].fillna(merged["yellow_red"])
+
+        merged["total_infractions"] = merged["red"] + merged["yellow"]
+
+        merged = merged.sort_values("total_infractions", ascending=False).reset_index(
+            drop=True
+        )
+
+        result = []
+        for _, row in merged.iterrows():
+            card_obj = {
+                "player": row["player"],
+                "statistics": row["statistics"],
+            }
+            # Update the cards data with the merged values
+            if card_obj["statistics"]:
+                card_obj["statistics"][0]["cards"]["yellow"] = int(row["yellow"])
+                card_obj["statistics"][0]["cards"]["red"] = int(row["red"])
+            result.append(card_obj)
+
+        return result
+    except Exception as e:
+        print(f"Error merging infractions: {e}")
+        return red_cards_data

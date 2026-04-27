@@ -17,6 +17,8 @@ from .services import (
     fetch_matches_besoccer,
     fetch_assists,
     fetch_red_cards,
+    fetch_yellow_cards,
+    merge_and_sort_infractions,
 )
 
 
@@ -99,7 +101,7 @@ class RendIndividualView(generic.TemplateView):
         scorers = []
         standings = []
         assists = []
-        red_cards = []
+        total_cards = []
 
         if selected_league_id:
             for league in leagues:
@@ -113,18 +115,21 @@ class RendIndividualView(generic.TemplateView):
 
                     standings = fetch_standings(league["code"], season)
 
-                    red_cards = fetch_red_cards(int(selected_league_id), season)
+                    yellow_cards = fetch_yellow_cards(int(selected_league_id), season)
+                    red_cards_raw = fetch_red_cards(int(selected_league_id), season)
+                    total_cards = merge_and_sort_infractions(
+                        red_cards_raw, yellow_cards
+                    )
 
                     break
 
-            # Si hay liga, traemos equipos (Funcionalidad F2)
             context["teams"] = fetch_teams(selected_league_id)
 
         context["selected_league"] = selected_league
         context["scorers"] = scorers
         context["assists"] = assists
         context["standings"] = standings
-        context["red_cards"] = red_cards
+        context["total_cards"] = total_cards
         return context
 
 
