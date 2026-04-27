@@ -564,3 +564,31 @@ def fetch_assists(league_id_football_data, season):
     except Exception as e:
         print(f"Error fetching assists: {e}")
         return []
+
+
+def fetch_red_cards(league_id_football_data, season):
+    """
+    Obtiene los máximos infractores (tarjetas rojas) usando API-Sports
+    """
+    league_id_apisports = LEAGUE_ID_MAPPING.get(league_id_football_data)
+
+    if not league_id_apisports:
+        return []
+
+    api_key = os.getenv("APISPORTS_KEY", "")
+
+    if not api_key:
+        return []
+
+    url = "https://v3.football.api-sports.io/players/topredcards"
+    headers = {"x-apisports-key": api_key}
+    params = {"season": "2024", "league": league_id_apisports}
+
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("response", [])
+    except Exception as e:
+        print(f"Error fetching red cards: {e}")
+        return []

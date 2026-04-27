@@ -16,6 +16,7 @@ from .services import (
     calculate_irm_probability,
     fetch_matches_besoccer,
     fetch_assists,
+    fetch_red_cards,
 )
 
 
@@ -98,6 +99,7 @@ class RendIndividualView(generic.TemplateView):
         scorers = []
         standings = []
         assists = []
+        red_cards = []
 
         if selected_league_id:
             for league in leagues:
@@ -111,6 +113,8 @@ class RendIndividualView(generic.TemplateView):
 
                     standings = fetch_standings(league["code"], season)
 
+                    red_cards = fetch_red_cards(int(selected_league_id), season)
+
                     break
 
             # Si hay liga, traemos equipos (Funcionalidad F2)
@@ -119,8 +123,8 @@ class RendIndividualView(generic.TemplateView):
         context["selected_league"] = selected_league
         context["scorers"] = scorers
         context["assists"] = assists
-
         context["standings"] = standings
+        context["red_cards"] = red_cards
         return context
 
 

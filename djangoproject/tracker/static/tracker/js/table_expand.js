@@ -30,6 +30,22 @@ if (toggleAssistsBtn) {
     });
 }
 
+    // Toggle Cards
+    const toggleCardsBtn = document.getElementById('toggle-cards');
+    if (toggleCardsBtn) {
+        const cardRows = document.querySelectorAll('.cards-row');
+        let cardsExpanded = false;
+        toggleCardsBtn.addEventListener('click', function() {
+            cardsExpanded = !cardsExpanded;
+            cardRows.forEach(row => {
+                if (row.getAttribute('data-hidden') === 'true') {
+                    row.style.display = cardsExpanded ? 'table-row' : 'none';
+                }
+            });
+            toggleCardsBtn.textContent = cardsExpanded ? 'Ver menos' : 'Ver más';
+        });
+    }
+
     // Toggle Standings
     const toggleBtn = document.getElementById('toggle-standings');
     if (toggleBtn) {
