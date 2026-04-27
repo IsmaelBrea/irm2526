@@ -175,10 +175,9 @@ document.addEventListener('DOMContentLoaded', function () {
         Plotly.newPlot('chart-bars', [traceA, traceB], layout, PLOTLY_CONFIG);
     }
 
-    // ── ÚLTIMOS RESULTADOS lado a lado ──
+  // ── ÚLTIMOS RESULTADOS lado a lado ──
     function renderLastResults(h2hMatches) {
         const box = document.getElementById('h2h-matches');
-        console.log(box);
         if (!box) return;
         
         box.innerHTML = ''; 
@@ -188,48 +187,55 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         
-        console.log("H2H ARRAY:", h2hMatches);
-        h2hMatches.forEach((m, i) => {
+        // El badge de WIN con el estilo neón que te gusta
+        const winBadge = `<span style="font-size:8px; font-weight:900; color:#22c55e; border:1px solid #22c55e33; padding:2px 5px; border-radius:3px; background:rgba(34,197,94,0.15); margin: 0 8px; box-shadow: 0 0 10px rgba(34,197,94,0.1);">WIN</span>`;
+
+        h2hMatches.forEach((m) => {
             const row = document.createElement('div');
+            // Usamos las 5 columnas que definimos en el HTML
             row.style.display = "grid";
-            row.style.gridTemplateColumns = "90px 1fr auto 1fr 90px";
+            row.style.gridTemplateColumns = "120px 1fr auto 1fr 120px"; 
             row.style.alignItems = "center";
-            row.style.padding = "8px 16px";
-            row.style.marginBottom = "4px";
-            row.style.borderRadius = "8px";
+            row.style.padding = "10px 16px";
+            row.style.marginBottom = "6px";
+            row.style.borderRadius = "12px";
             row.style.backgroundColor = "rgba(30, 41, 59, 0.4)";
+            row.style.border = "1px solid rgba(51, 65, 85, 0.3)";
             
-            let c = "#94a3b8"; 
-            if (m.result === "home") c = "#22c55e"; 
-            if (m.result === "away") c = "#3b82f6"; 
-    
-            console.log("PARTIDO:", m);
+            // Color del marcador según resultado
+            let scoreColor = "#94a3b8"; 
+            if (m.result === "home") scoreColor = "#22c55e"; 
+            if (m.result === "away") scoreColor = "#3b82f6"; 
+
             row.innerHTML = `
-    <span style="font-size:10px; color:#64748b; font-family:monospace;">
-        ${m.date || '-'}
-    </span>
+                <span style="font-size:10px; color:#64748b; font-family:monospace; font-weight:bold;">
+                    ${m.date || '-'}
+                </span>
 
-    <span style="font-size:11px; font-weight:700; color:#cbd5e1; text-align:right; padding-right:10px; overflow:hidden; text-overflow:ellipsis;">
-        ${m.home || '-'}
-    </span>
+                <div style="text-align:right; display:flex; align-items:center; justify-content:flex-end;">
+                    ${m.result === 'home' ? winBadge : ''}
+                    <span style="font-size:11px; font-weight:800; color:#cbd5e1; white-space: nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        ${m.home || '-'}
+                    </span>
+                </div>
 
-    <div style="background:#020617; border:1px solid #334155; padding:2px 10px; border-radius:4px; min-width:65px; text-align:center;">
-        <span style="font-family:monospace; font-weight:900; font-size:13px; color:${c}">
-            ${m.score || '-'}
-        </span>
-    </div>
+                <div style="background:#020617; border:1px solid #334155; padding:3px 12px; border-radius:6px; min-width:75px; text-align:center; margin: 0 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);">
+                    <span style="font-family:monospace; font-weight:900; font-size:14px; color:${scoreColor}; letter-spacing:1px;">
+                        ${m.score || '-'}
+                    </span>
+                </div>
 
-    <span style="font-size:11px; font-weight:700; color:#cbd5e1; text-align:left; padding-left:10px; overflow:hidden; text-overflow:ellipsis;">
-        ${m.away || '-'}
-    </span>
+                <div style="text-align:left; display:flex; align-items:center; justify-content:flex-start;">
+                    <span style="font-size:11px; font-weight:800; color:#cbd5e1; white-space: nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        ${m.away || '-'}
+                    </span>
+                    ${m.result === 'away' ? winBadge : ''}
+                </div>
 
-    <div style="text-align:center;">
-        ${m.local_won === true
-            ? '<span style="font-size:8px; font-weight:900; color:#22c55e; border:1px solid #22c55e33; padding:1px 4px; border-radius:3px; background:rgba(34,197,94,0.1);">WIN</span>'
-            : ''
-        }
-    </div>
-`;
+                <div style="text-align:center; font-size:9px; color:#475569; font-family:monospace; font-weight:bold; letter-spacing:1px;">
+                    ${m.result === 'draw' ? '<span style="color:#f59e0b; opacity:0.8;">DRAW</span>' : ''}
+                </div>
+            `;
             box.appendChild(row);
         });
     };

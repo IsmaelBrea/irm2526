@@ -237,7 +237,7 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
             if df is None or df.empty:
                 return []
 
-            last5 = df.head(5).iloc[::-1].reset_index(drop=True)
+            last5 = df.tail(5).reset_index(drop=True)
 
             result = []
             for i, row in last5.iterrows():
