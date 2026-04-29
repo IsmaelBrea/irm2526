@@ -141,67 +141,98 @@ renderMatches(matchesInRound);
         });
 }
 
-    function renderMatches(matches) {
-        matchesContainer.innerHTML = '';
-        
-        matches.forEach(match => {
-            const matchDiv = document.createElement('div');
-matchDiv.className = 'bg-slate-900/50 border border-slate-800 rounded-lg p-4';
-const matchTime = `${match.hour}:${match.minute.toString().padStart(2, '0')}`;
+function renderMatches(matches) {
+    matchesContainer.innerHTML = '';
+    
+    matches.forEach((match, index) => {
+        const matchDiv = document.createElement('div');
+        matchDiv.className = 'bg-slate-900/50 border border-slate-800 rounded-lg p-4 mb-4';
+        const matchTime = `${match.hour}:${match.minute.toString().padStart(2, '0')}`;
+        const uniqueId = `odds-${index}-${match.id}`;
 
-const score = match.local_goals !== 'x' 
-    ? `${match.local_goals}-${match.visitor_goals}`
-    : `${matchTime}`;
+        const score = match.local_goals !== 'x' 
+            ? `${match.local_goals}-${match.visitor_goals}`
+            : `${matchTime}`;
 
-// Mostrar odds si están disponibles
-// Mostrar odds si están disponibles (ahora es una lista de bookmakers)
-const oddsHtml = match.odds && Array.isArray(match.odds) && match.odds.length > 0 ? `
-    <div class="mt-3 text-xs text-slate-400 border-t border-slate-700 pt-2">
-        <p class="font-semibold mb-2">Cuotas disponibles:</p>
-        ${match.odds.map(odd => `
-            <div class="mb-2 pb-2 border-b border-slate-800 last:border-b-0">
-                <p class="text-slate-500 mb-1">${odd.bookmaker}</p>
-                <div class="flex justify-between gap-2">
-                    <span class="flex-1">${match.local}: <strong class="text-green-400">${odd.home.toFixed(2)}</strong></span>
-                    <span class="flex-1 text-center">Empate: <strong class="text-blue-400">${odd.draw.toFixed(2)}</strong></span>
-                    <span class="flex-1 text-right">${match.visitor}: <strong class="text-orange-400">${odd.away.toFixed(2)}</strong></span>
+const oddsButton = match.odds && Array.isArray(match.odds) && match.odds.length > 0
+    ? `<span class="w-px bg-slate-700"></span>
+       <button class="ml-3 px-4 py-3 text-sm font-semibold text-green-400 hover:text-slate-100 border border-green-600 hover:border-slate-400 rounded transition odds-toggle" data-odds-id="${uniqueId}">
+        Ver Cuotas
+       </button>`
+    : '';
+
+        // HTML de cuotas (oculto por defecto)
+        let oddsHtml = '';
+        if (match.odds && Array.isArray(match.odds) && match.odds.length > 0) {
+            oddsHtml = `
+                <div id="${uniqueId}" class="hidden mt-4 pt-4 border-t border-slate-700">
+                    ${match.odds.map(odd => `
+                        <div class="mb-3 pb-3 border-b border-slate-800 last:border-b-0">
+                            <p class="text-slate-400 text-xs mb-2">${odd.bookmaker}</p>
+                            <div class="flex justify-between gap-2 text-xs">
+                                <span class="flex-1">
+                                    <strong class="text-green-400">${match.local}</strong>: ${odd.home.toFixed(2)}
+                                </span>
+                                <span class="flex-1 text-center">
+                                    <strong class="text-orange-400">Empate</strong>: ${odd.draw.toFixed(2)}
+                                </span>
+                                <span class="flex-1 text-right">
+                                    <strong class="text-blue-400">${match.visitor}</strong>: ${odd.away.toFixed(2)}
+                                </span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        matchDiv.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3 flex-1">
+                    ${match.local_shield ? `<img src="${match.local_shield}" class="w-8 h-8 object-contain">` : '<div class="w-8 h-8"></div>'}
+                    <div class="flex-1">
+                        <p class="text-white font-semibold text-sm">${match.local}</p>
+                    </div>
+                </div>
+
+                <div class="text-center px-6">
+                    <p class="text-white font-bold text-lg">${score}</p>
+                    <p class="text-slate-400 text-xs">
+                        ${match.local_goals !== 'x' ? `${match.date} - ${matchTime}` : match.date}
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-3 flex-1 justify-end">
+                    <div class="flex-1 text-right">
+                        <p class="text-white font-semibold text-sm">${match.visitor}</p>
+                    </div>
+                    ${match.visitor_shield ? `<img src="${match.visitor_shield}" class="w-8 h-8 object-contain">` : '<div class="w-8 h-8"></div>'}
+                    ${oddsButton}
                 </div>
             </div>
-        `).join('')}
-    </div>
-` : '';
 
-matchDiv.innerHTML = `
-    <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3 flex-1">
-            ${match.local_shield ? `<img src="${match.local_shield}" class="w-8 h-8 object-contain">` : '<div class="w-8 h-8"></div>'}
-            <div class="flex-1">
-                <p class="text-white font-semibold text-sm">${match.local}</p>
-            </div>
-        </div>
-
-        <div class="text-center px-6">
-            <p class="text-white font-bold text-lg">${score}</p>
-            <p class="text-slate-400 text-xs">
-                ${match.local_goals !== 'x' ? `${match.date} - ${matchTime}` : match.date}
-            </p>
-        </div>
-
-        <div class="flex items-center gap-3 flex-1 justify-end">
-            <div class="flex-1 text-right">
-                <p class="text-white font-semibold text-sm">${match.visitor}</p>
-            </div>
-            ${match.visitor_shield ? `<img src="${match.visitor_shield}" class="w-8 h-8 object-contain">` : '<div class="w-8 h-8"></div>'}
-        </div>
-    </div>
-
-    <div class="mt-2 text-slate-400 text-xs">J ${match.round}</div>
-    ${oddsHtml}
-`;
+            <div class="mt-2 text-slate-400 text-xs">J ${match.round}</div>
+            ${oddsHtml}
+        `;
             
-            matchesContainer.appendChild(matchDiv);
+        matchesContainer.appendChild(matchDiv);
+    });
+
+    // Añadir event listeners para los botones de cuotas
+    document.querySelectorAll('.odds-toggle').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const oddsId = btn.getAttribute('data-odds-id');
+            const oddsContainer = document.getElementById(oddsId);
+            if (oddsContainer) {
+                oddsContainer.classList.toggle('hidden');
+                btn.textContent = oddsContainer.classList.contains('hidden') 
+                    ? 'Ver Cuotas' 
+                    : 'Ocultar Cuotas';
+            }
         });
-    }
+    });
+}
 
     toggleDropdown(seasonBtn, seasonDropdown);
 toggleDropdown(roundBtn, roundDropdown);
