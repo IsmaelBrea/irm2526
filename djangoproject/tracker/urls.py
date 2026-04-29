@@ -18,4 +18,9 @@ urlpatterns = [
     ),
     path("api/league-matches/", views.get_league_matches, name="get_league_matches"),
     path("partidos/", views.PartidosView.as_view(), name="partidos"),
+    path(
+        "analisis-avanzado/",
+        views.AnalisisAvanzadoView.as_view(),
+        name="analisis-avanzado",
+    ),
 ]

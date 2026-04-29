@@ -1,0 +1,198 @@
+{% extends "tracker/base.html" %}
+{% load static %}
+
+{% block extra_head %}
+{# 1. IMPORTANTE: CDN de Banderas #}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css"/>
+
+<a href="{% url 'tracker:home' %}"
+   class="fixed top-4 right-4 z-50 w-10 h-10 flex items-center justify-center bg-slate-900/80 border border-slate-700 text-slate-200 rounded-lg hover:bg-slate-800 transition">
+    ←
+</a>
+<link rel="stylesheet" href="{% static 'tracker/css/index.css' %}">
+<script src="{% static 'tracker/js/analisis_avanzado.js' %}" defer></script>
+
+<style>
+    /* Estilo extra para que las banderas luzcan bien */
+    .fi {
+        width: 1.1em !important;
+        line-height: 1em !important;
+        border-radius: 2px;
+        box-shadow: 0 0 2px rgba(0,0,0,0.5);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="w-full space-y-6"> 
+    {% if selected_league_id %}
+
+        {# ── CABECERA LIGA ── #}
+        <div class="flex items-center gap-6 pb-4 border-b border-slate-800 mb-6 w-full"> 
+            {% if selected_league.emblem %}
+                <img src="{{ selected_league.emblem }}" class="w-12 h-12 object-contain"> 
+            {% endif %}
+            <div>
+                <h2 class="text-3xl font-black text-white tracking-tighter uppercase">{{ selected_league.name }}</h2>
+                <p class="text-green-500 font-mono text-[10px] uppercase tracking-[0.2em]">{{ selected_league.area.name }}</p>
+            </div>
+        </div>
+
+        {# ── SELECTOR DE EQUIPO ── #}
+        <div class="max-w-2xl p-6 bg-slate-900/50 border border-slate-800 rounded-[2rem] space-y-4 relative flex flex-col justify-center">
+            <p class="text-[10px] font-bold text-white uppercase tracking-widest">Analizar Club Específico</p>
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 relative"> 
+                    <div class="relative flex-1">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <svg class="h-3 w-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        <input type="text" id="search-team" placeholder="Buscar equipo..." autocomplete="off"
+                               class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-xs focus:border-green-500 outline-none text-slate-300 transition-all">
+                        <input type="hidden" id="selected-team-id" value="{{ team.id|default:'' }}">
+                    </div>
+
+                    <div class="relative" id="dropdown-wrapper">
+                        <button id="btn-open-dropdown" type="button"
+                                class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-3 text-xs text-green-500 font-bold w-14 text-center hover:border-green-500 transition-all">
+                            +
+                        </button>
+                        <div id="team-dropdown" class="team-dropdown hidden absolute right-0 top-full mt-1 z-50 w-64 bg-slate-900 border border-slate-700 rounded-xl overflow-y-auto shadow-2xl custom-scroll" style="max-height:200px;">
+                            {% for t in teams %}
+                            <div class="team-option px-4 py-2 text-xs text-slate-300 cursor-pointer hover:bg-slate-800 hover:text-green-500 transition-colors flex items-center gap-3 border-b border-slate-800/50 last:border-0"
+                                 data-id="{{ t.id }}" data-name="{{ t.name }}">
+                                {% if t.crest %}<img src="{{ t.crest }}" class="w-5 h-5 object-contain flex-shrink-0">{% endif %}
+                                <span>{{ t.name }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <button id="btn-analizar" class="bg-green-600 hover:bg-green-500 text-black font-black py-3 px-6 rounded-xl transition-all uppercase text-[10px] tracking-[0.1em] shadow-lg active:scale-95 ml-2">
+                        Analizar
+                    </button>
+                </div>
+
+                <div id="display-selected" class="h-14 border border-dashed border-slate-800 rounded-[1.2rem] flex items-center justify-center text-slate-500 text-[10px] uppercase font-mono px-6 text-center transition-all duration-300">
+                    {% if team %}
+                        <span class="text-green-500 font-black">{{ team.name }}</span>
+                    {% else %}
+                        [ SIN SELECCIÓN ]
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# ── ANÁLISIS DEL EQUIPO ── #}
+        {% if team %}
+
+            {# Cabecera del equipo #}
+            <div class="flex items-center gap-8 py-6 border-b border-slate-800 mt-8">
+                {% if team.crest %}
+                    <img src="{{ team.crest }}" class="w-20 h-20 object-contain">
+                {% endif %}
+                <div>
+                    <h2 class="text-4xl font-black text-white tracking-tighter uppercase">{{ team.name }}</h2>
+                    <p class="text-green-500 font-mono text-xs tracking-[0.3em] uppercase mt-1">
+                        {{ team.tla }} · {{ team.venue|default:"Sin estadio" }} · Fundado en {{ team.founded }}
+                    </p>
+                </div>
+            </div>
+
+            {# Datos adicionales #}
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-4">
+                    <p class="text-[9px] text-slate-500 uppercase font-mono tracking-widest mb-1">Colores</p>
+                    <p class="text-sm font-bold text-white">{{ team.clubColors|default:"—" }}</p>
+                </div>
+                <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-4">
+                    <p class="text-[9px] text-slate-500 uppercase font-mono tracking-widest mb-1">Web</p>
+                    <a href="{{ team.website }}" target="_blank" class="text-sm font-bold text-green-500 hover:underline truncate block">{{ team.website|default:"—" }}</a>
+                </div>
+                <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-4 md:col-span-2">
+                    <p class="text-[9px] text-slate-500 uppercase font-mono tracking-widest mb-1">Dirección</p>
+                    <p class="text-sm font-bold text-white truncate">{{ team.address|default:"—" }}</p>
+                </div>
+            </div>
+
+            {# Historial + Plantilla #}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                {# Historial reciente #}
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden shadow-2xl">
+                        <div class="bg-slate-800/40 px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+                            <p class="text-[12px] font-black text-slate-300 uppercase tracking-widest">Historial Reciente</p>
+                            <span class="text-[9px] text-slate-500 font-mono uppercase">Más recientes primero</span>
+                        </div>
+                        <div class="p-6 space-y-2">
+                            {% for match in recent_matches|dictsortreversed:"utcDate" %}
+                            <div class="grid grid-cols-4 items-center p-3 bg-slate-800/30 rounded-xl border border-slate-700/10 hover:bg-slate-800/50 transition-colors">
+                                <span class="text-[10px] font-mono text-slate-500">{{ match.utcDate|slice:":10" }}</span>
+                                <span class="text-xs text-right font-bold {% if match.homeTeam.id == team.id %}text-green-500{% else %}text-white{% endif %}">
+                                    {{ match.homeTeam.shortName|default:match.homeTeam.name }}
+                                </span>
+                                <span class="text-center font-black text-white mx-2 bg-slate-900/80 py-1 px-3 rounded-lg border border-slate-700/50 shadow-inner">
+                                    {{ match.score.fullTime.home }}-{{ match.score.fullTime.away }}
+                                </span>
+                                <span class="text-xs font-bold {% if match.awayTeam.id == team.id %}text-green-500{% else %}text-white{% endif %}">
+                                    {{ match.awayTeam.shortName|default:match.awayTeam.name }}
+                                </span>
+                            </div>
+                            {% empty %}
+                            <p class="text-center text-slate-600 font-mono text-xs py-10 uppercase">No hay partidos registrados</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                {# Plantilla con BANDERAS #}
+                <div class="bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden shadow-2xl">
+                    <div class="bg-slate-800/40 px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+                        <p class="text-[12px] font-black text-slate-300 uppercase tracking-widest">Plantilla</p>
+                        <span class="text-[9px] text-slate-500 font-mono">{{ squad|length }} jugadores</span>
+                    </div>
+                    <div class="p-4 max-h-[600px] overflow-y-auto custom-scroll space-y-1">
+                        {% for player in squad %}
+                        <div class="group flex justify-between items-center py-3 px-4 rounded-2xl hover:bg-slate-800/40 transition-all border border-transparent hover:border-slate-700/50">
+                            <div class="flex items-center gap-4">
+                                <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-bold
+                                    {% if player.role == 'COACH' %} text-yellow-500 
+                                    {% elif player.position == 'Goalkeeper' %} text-orange-500
+                                    {% elif player.position == 'Defence' %} text-blue-500
+                                    {% elif player.position == 'Midfield' %} text-green-500
+                                    {% else %} text-red-500 {% endif %}">
+                                    {{ player.position|slice:":1"|default:"C" }}
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-200 group-hover:text-white">{{ player.name }}</p>
+                                    <p class="text-[9px] text-slate-500 uppercase font-mono">{{ player.position|default:"Entrenador" }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="text-right flex items-center gap-2">
+                                {% if player.flag_code %}
+                                    <span class="fi fi-{{ player.flag_code }} rounded-sm shadow-sm" title="{{ player.nationality }}"></span>
+                                {% endif %}
+                                <span class="text-[9px] font-mono text-slate-500 uppercase">
+                                    {{ player.nationality|slice:":3" }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    {% else %}
+        <div class="w-full h-[60vh] flex items-center justify-center border-2 border-dashed border-slate-800/50 rounded-[3rem]">
+            <p class="irm-placeholder text-center">&larr; Selecciona competición en el menú lateral</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

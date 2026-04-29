@@ -208,24 +208,34 @@
 
 <script src="{% static 'tracker/js/index.js' %}"></script>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 mb-8">
     
-    <div class="bg-slate-900/40 border border-slate-800 rounded-[2.5rem] p-8 opacity-60 cursor-not-allowed flex flex-col justify-between">
-        <div class="flex items-start gap-5">
-            <div class="w-12 h-16 border-2 border-slate-700 rounded-full flex flex-col items-center justify-around p-1.5 shrink-0">
-                <div class="w-full h-1/4 bg-slate-800 rounded-full"></div>
-                <div class="w-full h-1/4 bg-slate-700 rounded-full"></div>
-                <div class="w-full h-1/4 bg-slate-800 rounded-full"></div>
-            </div>
-            
-            <div class="space-y-3">
-                <h3 class="text-[15px] font-black text-slate-400 uppercase tracking-[0.2em]">Análisis Avanzado</h3>
-                <p class="text-[11px] text-slate-500 leading-relaxed font-bold uppercase tracking-wider">
-                    Vista profunda de un club específico.
-                </p>
-            </div>
+<a href="{% url 'tracker:analisis-avanzado' %}{% if selected_league %}?league={{ selected_league.id }}{% endif %}" 
+   class="group relative bg-slate-900/40 border transition-all duration-300 rounded-[2.5rem] p-8 flex flex-col justify-between
+   {% if request.resolver_match.url_name == 'analisis-avanzado' %} border-green-500/50 bg-green-500/5 {% else %} border-slate-800 hover:border-green-500/30 {% endif %}">
+    
+    <div class="flex items-start gap-5">
+        <div class="w-12 h-16 border-2 border-slate-700 rounded-full flex flex-col items-center justify-around p-1.5 shrink-0 group-hover:border-green-500/50 transition-colors">
+            <div class="w-full h-1/4 bg-slate-800 rounded-full group-hover:bg-green-500/20"></div>
+            <div class="w-full h-1/4 bg-slate-700 rounded-full group-hover:bg-green-500/40"></div>
+            <div class="w-full h-1/4 bg-slate-800 rounded-full group-hover:bg-green-500/20"></div>
+        </div>
+        
+        <div class="space-y-3">
+            <h3 class="text-[15px] font-black uppercase tracking-[0.2em] transition-colors
+               {% if request.resolver_match.url_name == 'analisis-avanzado' %} text-green-400 {% else %} text-slate-400 group-hover:text-green-400 {% endif %}">
+                Análisis Avanzado
+            </h3>
+            <p class="text-[11px] text-slate-500 leading-relaxed font-bold uppercase tracking-wider">
+                Vista profunda de un club específico. Análisis de plantilla y forma.
+            </p>
         </div>
     </div>
+
+    <span class="mt-6 text-[10px] font-black text-green-500 flex items-center gap-1 group-hover:translate-x-2 transition-transform uppercase">
+        Explorar Club <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+    </span>
+</a>
 
     <a href="{% url 'tracker:league-detail' %}{% if selected_league %}?league={{ selected_league.id }}{% endif %}" 
        class="group relative bg-slate-900/40 border transition-all duration-300 rounded-[2.5rem] p-8 flex flex-col justify-between

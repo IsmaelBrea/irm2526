@@ -698,3 +698,35 @@ def merge_and_sort_infractions(red_cards_data, yellow_cards_data):
     except Exception as e:
         print(f"Error merging infractions: {e}")
         return red_cards_data
+
+
+def fetch_team_detail(team_id):
+    """
+    Obtiene la información detallada de un equipo usando el Pool de Tokens.
+    """
+    url = f"{BASE_URL}teams/{team_id}"
+
+    headers = {"X-Auth-Token": token_pool.get_token()}
+
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            return response.json()
+        return None
+    except Exception as e:
+        print(f"Error IRM Engine - Detalle Equipo: {e}")
+        return None
+
+
+def fetch_team_matches(team_id):
+    """Obtiene los últimos partidos del equipo para el análisis de forma (F4)"""
+    url = f"{BASE_URL}teams/{team_id}/matches?status=FINISHED"
+    headers = {"X-Auth-Token": token_pool.get_token()}
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        if response.status_code == 200:
+            return response.json().get("matches", [])
+        return []
+    except Exception as e:
+        print(f"Error al obtener partidos del equipo: {e}")
+        return []
