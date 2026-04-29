@@ -84,9 +84,6 @@ def fetch_performance_data(team_a_id, team_b_id, league_id):
         res_ma = requests.get(url_matches_a, headers=headers)
         res_mb = requests.get(url_matches_b, headers=headers)
         res_h2h = requests.get(url_h2h, headers=headers)
-        print(
-            f"H2H status: {res_h2h.status_code}, matches: {len(res_h2h.json().get('matches', []))}"
-        )
 
         if res_s.status_code == 200:
             # Extraemos solo la tabla general
@@ -345,7 +342,6 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
             return result
 
         h2h_matches = build_h2h(raw_data["h2h"], t_a_id, t_b_id)
-        print(f"H2H procesados: {len(h2h_matches)}")
 
         # Construcción de la tabla con Suma + (Media)
         return {
@@ -467,7 +463,7 @@ def fetch_players_by_league(league_id):
                 player["team_crest"] = team.get("crest")
                 players.append(player)
         except Exception as e:
-            print(f"Error fetching team {team_id}: {e}")
+            print(f"Error obteniendo equipo {team_id}: {e}")
 
     return players
 
@@ -483,7 +479,7 @@ def fetch_player_person(player_id):
         data = response.json()
         return data
     except Exception as e:
-        print(f"Error fetching player: {e}")
+        print(f"Error obteniendo jugador {player_id}: {e}")
         return None
 
 
@@ -521,7 +517,7 @@ def fetch_matches_besoccer(league_id, round_num=None, year=None):
         data = response.json()
         return data.get("match", [])
     except Exception as e:
-        print(f"Error fetching matches from besoccer: {e}")
+        print(f"Error obteniendo partidos de besoccer: {e}")
         return []
 
 
@@ -722,7 +718,7 @@ def fetch_matches_football_data(league_id, matchday=None, season=None):
         for match in data.get("matches", []):
             transformed_match = {
                 "id": match.get("id"),
-                "date": match.get("utcDate", "")[:10],  # YYYY-MM-DD
+                "date": match.get("utcDate", "")[:10],
                 "hour": (
                     match.get("utcDate", "")[11:13]
                     if "T" in match.get("utcDate", "")
@@ -747,8 +743,8 @@ def fetch_matches_football_data(league_id, matchday=None, season=None):
                 "local_goals": match.get("score", {}).get("fullTime", {}).get("home"),
                 "visitor_goals": match.get("score", {}).get("fullTime", {}).get("away"),
                 "status": match.get("status"),
+                "odds": {},  # Inicializar vacío
             }
-            # Convertir None a 'x' para goles no jugados
             if transformed_match["local_goals"] is None:
                 transformed_match["local_goals"] = "x"
             if transformed_match["visitor_goals"] is None:
@@ -756,8 +752,146 @@ def fetch_matches_football_data(league_id, matchday=None, season=None):
 
             matches.append(transformed_match)
 
+        # Enriquecer con odds
+        odds_list = fetch_odds(league_id)
+        matches = match_odds_to_matches(matches, odds_list)
+
         return matches
 
     except Exception as e:
         print(f"Error fetching matches from football-data: {e}")
         return []
+
+
+SPORT_KEY_MAPPING = {
+    2001: "soccer_uefa_champs_league",
+    2014: "soccer_spain_la_liga",
+    2019: "soccer_italy_serie_a",
+    2021: "soccer_epl",
+    2000: "soccer_fifa_world_cup",
+    2002: "soccer_germany_bundesliga",
+    2015: "soccer_france_ligue_one",
+}
+
+
+def fetch_odds(league_id):
+    """Obtiene odds de partidos desde The Odds API"""
+    sport_key = SPORT_KEY_MAPPING.get(league_id)
+    if not sport_key:
+        return []
+
+    api_key = os.getenv("ODDS_API_KEY", "")
+    if not api_key:
+        print("Warning: ODDS_API_KEY no está configurada")
+        return []
+
+    url = f"https://api.the-odds-api.com/v4/sports/{sport_key}/odds/"
+    params = {"regions": "eu", "markets": "h2h", "apiKey": api_key}
+
+    try:
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        # La API devuelve un diccionario con key "events"
+        if isinstance(data, dict):
+            events = data.get("events", [])
+        elif isinstance(data, list):
+            events = data  # Si es una lista directa
+        else:
+            events = []
+
+        return events
+    except Exception as e:
+        print(f"Error fetching odds: {e}")
+        import traceback
+
+        traceback.print_exc()
+        return []
+
+
+def get_team_keywords(name):
+    """Extrae palabras clave del nombre eliminando ruido"""
+    name = name.lower().strip()
+
+    # Palabras a ignorar (prefijos/sufijos)
+    stop_words = {"rcd", "ca", "ad", "ud", "cf", "fc", "bsc", "sd", "de", "the"}
+
+    # Dividir en palabras y filtrar
+    words = [w for w in name.split() if w not in stop_words]
+
+    return set(words)  # Retornar como conjunto para comparar fácil
+
+
+def match_odds_to_matches(matches, odds_list):
+    """Matchea odds con fuzzy matching por palabras clave"""
+
+    for match in matches:
+        match_date = match.get("date")
+        local = match.get("local", "").lower().strip()
+        visitor = match.get("visitor", "").lower().strip()
+
+        local_keywords = get_team_keywords(local)
+        visitor_keywords = get_team_keywords(visitor)
+
+        best_odd = None
+
+        for odd in odds_list:
+            odd_date = odd.get("commence_time", "")[:10]
+            home = odd.get("home_team", "").lower().strip()
+            away = odd.get("away_team", "").lower().strip()
+
+            if match_date == odd_date:
+                home_keywords = get_team_keywords(home)
+                away_keywords = get_team_keywords(away)
+
+                # Buscar si comparten palabras clave significativas
+                local_match = len(local_keywords & home_keywords) > 0
+                visitor_match = len(visitor_keywords & away_keywords) > 0
+
+                if local_match and visitor_match:
+
+                    best_odd = odd
+                    break
+
+        if best_odd:
+            all_odds = []
+            for bookmaker in best_odd.get("bookmakers", []):
+                for market in bookmaker.get("markets", []):
+                    if market.get("key") == "h2h":
+                        outcomes = market.get("outcomes", [])
+                        odds_dict = {o.get("name"): o.get("price") for o in outcomes}
+
+                        # Buscar outcomes por palabras clave
+                        home_odd = next(
+                            (
+                                v
+                                for k, v in odds_dict.items()
+                                if len(get_team_keywords(k) & home_keywords) > 0
+                            ),
+                            None,
+                        )
+                        draw_odd = odds_dict.get("Draw")
+                        away_odd = next(
+                            (
+                                v
+                                for k, v in odds_dict.items()
+                                if len(get_team_keywords(k) & away_keywords) > 0
+                            ),
+                            None,
+                        )
+
+                        if home_odd and draw_odd and away_odd:
+                            all_odds.append(
+                                {
+                                    "home": home_odd,
+                                    "draw": draw_odd,
+                                    "away": away_odd,
+                                    "bookmaker": bookmaker.get("title", "N/A"),
+                                }
+                            )
+
+            if all_odds:
+                match["odds"] = all_odds
+
+    return matches
