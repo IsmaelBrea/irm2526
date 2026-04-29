@@ -698,3 +698,66 @@ def merge_and_sort_infractions(red_cards_data, yellow_cards_data):
     except Exception as e:
         print(f"Error merging infractions: {e}")
         return red_cards_data
+
+
+def fetch_matches_football_data(league_id, matchday=None, season=None):
+    """Obtiene partidos de una liga desde football-data.org API"""
+
+    url = f"{BASE_URL}competitions/{league_id}/matches"
+    headers = {"X-Auth-Token": token_pool.get_token()}
+
+    params = {}
+    if season:
+        params["season"] = season
+    if matchday:
+        params["matchday"] = matchday
+
+    try:
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        # Transformar matches al formato esperado
+        matches = []
+        for match in data.get("matches", []):
+            transformed_match = {
+                "id": match.get("id"),
+                "date": match.get("utcDate", "")[:10],  # YYYY-MM-DD
+                "hour": (
+                    match.get("utcDate", "")[11:13]
+                    if "T" in match.get("utcDate", "")
+                    else "00"
+                ),
+                "minute": (
+                    match.get("utcDate", "")[14:16]
+                    if "T" in match.get("utcDate", "")
+                    else "00"
+                ),
+                "round": match.get("matchday"),
+                "year": (
+                    int(match.get("season", {}).get("startDate", "")[:4])
+                    if match.get("season", {}).get("startDate")
+                    else None
+                ),
+                "total_rounds": match.get("season", {}).get("currentMatchday", 0),
+                "local": match.get("homeTeam", {}).get("name"),
+                "visitor": match.get("awayTeam", {}).get("name"),
+                "local_shield": match.get("homeTeam", {}).get("crest"),
+                "visitor_shield": match.get("awayTeam", {}).get("crest"),
+                "local_goals": match.get("score", {}).get("fullTime", {}).get("home"),
+                "visitor_goals": match.get("score", {}).get("fullTime", {}).get("away"),
+                "status": match.get("status"),
+            }
+            # Convertir None a 'x' para goles no jugados
+            if transformed_match["local_goals"] is None:
+                transformed_match["local_goals"] = "x"
+            if transformed_match["visitor_goals"] is None:
+                transformed_match["visitor_goals"] = "x"
+
+            matches.append(transformed_match)
+
+        return matches
+
+    except Exception as e:
+        print(f"Error fetching matches from football-data: {e}")
+        return []

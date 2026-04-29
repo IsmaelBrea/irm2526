@@ -14,7 +14,7 @@ from .services import (
     fetch_standings,
     fetch_players_by_league,
     calculate_irm_probability,
-    fetch_matches_besoccer,
+    fetch_matches_football_data,
     fetch_assists,
     fetch_red_cards,
     fetch_yellow_cards,
@@ -197,7 +197,9 @@ def get_league_matches(request):
 
     try:
         league_id = int(league_id)
-        matches = fetch_matches_besoccer(league_id, round_num=round_num, year=year)
+        matches = fetch_matches_football_data(
+            league_id, matchday=round_num, season=year
+        )
         return JsonResponse({"status": "success", "data": matches})
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)

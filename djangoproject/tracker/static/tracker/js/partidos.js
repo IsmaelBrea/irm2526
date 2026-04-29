@@ -31,9 +31,11 @@ document.addEventListener('DOMContentLoaded', function() {
 function loadMatches(skipRoundFilter = false) {
     let url = `/tracker/api/league-matches/?league_id=${leagueId}`;
     
-    // Solo agregar parámetros si ya está inicializado
-    if (seasonBtn.dataset.year && roundBtn.dataset.round) {
-        url += `&year=${seasonBtn.dataset.year}&round=${roundBtn.dataset.round}`;
+    if (seasonBtn.dataset.year) {
+        url += `&year=${seasonBtn.dataset.year}`;
+    }
+    if (roundBtn.dataset.round && !skipRoundFilter) {
+        url += `&round=${roundBtn.dataset.round}`;
     }
 
     fetch(url)
@@ -66,7 +68,7 @@ function loadMatches(skipRoundFilter = false) {
                         div.className = 'px-4 py-2 text-xs text-slate-300 cursor-pointer hover:bg-slate-800 hover:text-green-500 transition-colors';
                         div.textContent = `${prevYear}/${y}`;
                         div.addEventListener('click', () => {
-                            seasonBtn.dataset.year = y;
+                            seasonBtn.dataset.year = y - 1;
                             seasonLabelText.textContent = `${prevYear}/${y}`;
                             seasonDropdown.classList.add('hidden');
                             roundDropdown.innerHTML = '';
@@ -84,7 +86,7 @@ function loadMatches(skipRoundFilter = false) {
                 if (matchesInSeason.length > 0) {
     
     if (skipRoundFilter) {
-        totalRoundsForSeason = parseInt(matchesInSeason[0].total_rounds);
+    totalRoundsForSeason = Math.max(...matchesInSeason.map(m => parseInt(m.round)));  // ✓ Encuentra la jornada más alta
         roundDropdown.innerHTML = ''; // Limpiar
         for (let i = 1; i <= totalRoundsForSeason; i++) {
             const div = document.createElement('div');
@@ -100,10 +102,27 @@ function loadMatches(skipRoundFilter = false) {
         }
     }
     
-const currentRound = parseInt(matchesInSeason[0].round);
+// Buscar la jornada más cercana a la fecha actual
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const roundDates = {};
+matchesInSeason.forEach(m => {
+    const round = parseInt(m.round);
+    const matchDate = new Date(m.date);
+    if (!roundDates[round] || matchDate < roundDates[round]) {
+        roundDates[round] = matchDate;
+    }
+});
+
+const sortedRounds = Object.keys(roundDates).sort((a, b) => {
+    return Math.abs(roundDates[a] - today) - Math.abs(roundDates[b] - today);
+});
+
+const currentRound = parseInt(sortedRounds[0]);
 
 // Solo actualizar en la primera carga, no cuando cambias de año
-if (skipRoundFilter && roundBtn.dataset.round === '1') {
+if (skipRoundFilter && !roundBtn.dataset.round) {
     roundBtn.dataset.round = currentRound;
     roundLabelText.textContent = `Jornada ${currentRound}`;
 }
@@ -166,6 +185,11 @@ renderMatches(matchesInRound);
     }
 
     toggleDropdown(seasonBtn, seasonDropdown);
-    toggleDropdown(roundBtn, roundDropdown);
-    loadMatches(true);
+toggleDropdown(roundBtn, roundDropdown);
+
+// Inicializar temporada antes de cargar
+seasonBtn.dataset.year = currentYear - 1;
+seasonLabelText.textContent = `${currentYear - 1}/${currentYear}`;
+
+loadMatches(true);
 });
