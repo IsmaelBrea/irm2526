@@ -4,6 +4,7 @@ from .services import fetch_competitions, fetch_teams
 from .services import fetch_scorers, fetch_standings
 from django.urls import reverse
 from .services import APITokenPool
+from .services import fetch_players_by_league
 
 
 class ServiceBasicTests(TestCase):
@@ -120,3 +121,31 @@ class APITokenPoolTests(TestCase):
         self.assertEqual(pool.get_token(), "token1")
         self.assertEqual(pool.get_token(), "token2")
         self.assertEqual(pool.get_token(), "token1")
+
+class PlayerServiceTests(TestCase):
+
+    @patch("tracker.services.token_pool.get_token", return_value="fake-token")
+    @patch("tracker.services.fetch_teams")
+    @patch("tracker.services.requests.get")
+    def test_fetch_players_by_league(self, mock_get, mock_fetch_teams, mock_token):
+
+        # Mock equipos
+        mock_fetch_teams.return_value = [
+            {"id": 1, "name": "Team A", "crest": "crest.png"}
+        ]
+
+        # Mock respuesta API jugadores
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "squad": [
+                {"id": 10, "name": "Player A"},
+                {"id": 11, "name": "Player B"}
+            ]
+        }
+        mock_get.return_value = mock_response
+
+        players = fetch_players_by_league(2021)
+
+        self.assertEqual(len(players), 2)
+        self.assertEqual(players[0]["team_name"], "Team A")
+        self.assertEqual(players[0]["team_crest"], "crest.png")
