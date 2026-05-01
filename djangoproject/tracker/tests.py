@@ -99,3 +99,14 @@ class ViewTests(TestCase):
         response = self.client.get(reverse("tracker:datos-jugador"))
 
         self.assertEqual(response.status_code, 200)
+
+class ServiceErrorTests(TestCase):
+
+    @patch("tracker.services.token_pool.get_token", return_value="fake-token")
+    @patch("tracker.services.requests.get")
+    def test_fetch_competitions_error(self, mock_get, mock_token):
+        mock_get.side_effect = Exception("API error")
+
+        result = fetch_competitions()
+
+        self.assertEqual(result, [])
