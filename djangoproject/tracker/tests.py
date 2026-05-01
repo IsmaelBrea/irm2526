@@ -3,6 +3,7 @@ from unittest.mock import patch, Mock
 from .services import fetch_competitions, fetch_teams
 from .services import fetch_scorers, fetch_standings
 from django.urls import reverse
+from .services import APITokenPool
 
 
 class ServiceBasicTests(TestCase):
@@ -110,3 +111,12 @@ class ServiceErrorTests(TestCase):
         result = fetch_competitions()
 
         self.assertEqual(result, [])
+
+class APITokenPoolTests(TestCase):
+
+    def test_token_pool_rotates_tokens(self):
+        pool = APITokenPool(["token1", "token2"])
+
+        self.assertEqual(pool.get_token(), "token1")
+        self.assertEqual(pool.get_token(), "token2")
+        self.assertEqual(pool.get_token(), "token1")
