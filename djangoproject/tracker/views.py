@@ -329,6 +329,7 @@ class AnalisisAvanzadoView(generic.TemplateView):
 
         league_id = self.request.GET.get("league")
         team_id = self.request.GET.get("team")
+        selected_league = None
 
         if league_id:
             context["teams"] = fetch_teams(league_id)
@@ -336,6 +337,7 @@ class AnalisisAvanzadoView(generic.TemplateView):
             # Recuperar objeto de la liga seleccionada para la cabecera
             for l in all_leagues:
                 if str(l["id"]) == str(league_id):
+                    selected_league = l
                     context["selected_league"] = l
                     break
 
@@ -376,6 +378,14 @@ class AnalisisAvanzadoView(generic.TemplateView):
                     "total_matches": len(df_matches),
                 }
                 context["recent_matches"] = matches_raw[-10:]
+
+                # --- OBTENER CLASIFICACIÓN PARA LA TABLA FINAL ---
+                if selected_league:
+                    season = selected_league.get("currentSeason", {}).get(
+                        "startDate", ""
+                    )[:4]
+                    standings_raw = fetch_standings(selected_league["code"], season)
+                    context["standings"] = standings_raw
 
                 # 3. PROCESAMIENTO DE PLANTILLA Y BANDERAS (CRÍTICO)
                 squad_data = team_detail.get("squad", [])

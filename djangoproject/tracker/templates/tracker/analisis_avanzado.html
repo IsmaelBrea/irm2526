@@ -164,6 +164,66 @@
                 })();
             </script>
             {% endif %}
+
+            {# ── TABLA DE CLASIFICACIÓN DE LA LIGA ── #}
+            <div class="mt-12 bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden shadow-2xl">
+                <div class="bg-slate-800/40 px-8 py-6 border-b border-slate-800 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-black text-white uppercase tracking-tighter">Clasificación Actual</h3>
+                        <p class="text-[10px] text-green-500 font-mono uppercase tracking-widest">{{ selected_league.name }}</p>
+                    </div>
+                    <span class="bg-slate-800 text-slate-400 text-[10px] px-3 py-1 rounded-full font-mono uppercase">Temporada {{ selected_league.currentSeason.startDate|slice:":4" }}</span>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-900/50 border-b border-slate-800">
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pos</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Equipo</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">PJ</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">G</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">E</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">P</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">GF</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">GC</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">DG</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-green-500 uppercase tracking-widest text-center bg-green-500/5">PTS</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/50">
+                            {% for entry in standings %}
+                            <tr class="hover:bg-slate-800/30 transition-colors {% if entry.team.id|stringformat:'i' == team.id|stringformat:'i' %}bg-green-500/10{% endif %}">
+                                <td class="px-6 py-4">
+                                    <span class="text-xs font-black {% if entry.position <= 4 %}text-blue-400{% elif entry.position >= 18 %}text-red-400{% else %}text-slate-400{% endif %}">
+                                        {{ entry.position }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <img src="{{ entry.team.crest }}" class="w-5 h-5 object-contain">
+                                        <span class="text-xs {% if entry.team.id|stringformat:'i' == team.id|stringformat:'i' %}text-green-400 font-black scale-105 transform origin-left transition-all{% else %}text-slate-300 font-bold{% endif %}">
+                                            {{ entry.team.name }}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-4 text-xs text-slate-400 font-mono text-center">{{ entry.playedGames }}</td>
+                                <td class="px-4 py-4 text-xs text-slate-400 font-mono text-center">{{ entry.won }}</td>
+                                <td class="px-4 py-4 text-xs text-slate-400 font-mono text-center">{{ entry.draw }}</td>
+                                <td class="px-4 py-4 text-xs text-slate-400 font-mono text-center">{{ entry.lost }}</td>
+                                <td class="px-4 py-4 text-xs text-slate-400 font-mono text-center">{{ entry.goalsFor }}</td>
+                                <td class="px-4 py-4 text-xs text-slate-400 font-mono text-center">{{ entry.goalsAgainst }}</td>
+                                <td class="px-4 py-4 text-xs font-bold text-center {% if entry.goalDifference > 0 %}text-slate-300{% else %}text-slate-500{% endif %}">{{ entry.goalDifference }}</td>
+                                <td class="px-6 py-4 text-sm font-black text-center text-white bg-green-500/5 border-l border-green-500/10">{{ entry.points }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-slate-800/20 px-8 py-4 border-t border-slate-800">
+                    <p class="text-[9px] text-slate-600 font-mono uppercase tracking-[0.2em]">Actualizado automáticamente por IRM Engine • Football-Data API v4</p>
+                </div>
+            </div>
         {% endif %} {# Cierre del if team #}
     {% else %}
         <div class="w-full h-[60vh] flex items-center justify-center border-2 border-dashed border-slate-800/50 rounded-[3rem]">
