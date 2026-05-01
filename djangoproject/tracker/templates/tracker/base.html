@@ -54,6 +54,24 @@
         <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
     </div>
     <div class="flex items-center gap-4 relative">
+
+        {% if request.resolver_match.url_name == 'datos-jugador' %}
+        <a href="{% url 'tracker:league-detail' %}?league={{ request.GET.league }}" 
+           class="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-green-500 transition"
+           title="Rendimiento Individual">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        {% endif %}
+{% if request.resolver_match.url_name != 'home' %}
+<a href="{% url 'tracker:home' %}" 
+   class="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-green-500 transition">
+    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+</svg>
+</a>
+{% endif %}
     {% if user.is_authenticated %}
         <div class="relative group">
     <button class="text-slate-300 text-sm font-semibold hover:text-green-500 transition-colors flex items-center gap-2">

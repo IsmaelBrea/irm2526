@@ -2,10 +2,7 @@
 {% load static %}
 
 {% block content %}
-<a href="{% url 'tracker:home' %}"
-   class="fixed top-4 right-4 z-50 w-10 h-10 flex items-center justify-center bg-slate-900/80 border border-slate-700 text-slate-200 rounded-lg hover:bg-slate-800 transition">
-    ←
-</a>
+
 <div class="w-full px-4 space-y-8 overflow-x-hidden">
             {% if selected_league %}
         <div class="flex items-center gap-6 pb-6 border-b border-slate-800 mb-8">
