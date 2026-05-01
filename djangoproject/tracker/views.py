@@ -1,3 +1,4 @@
+from multiprocessing import context
 from urllib import response
 
 from django.urls import reverse
@@ -390,6 +391,13 @@ class AnalisisAvanzadoView(generic.TemplateView):
                 ]  # Últimos 10 para la tabla
                 context["squad"] = df_squad.to_dict("records")
 
+        # Verificar si el equipo actual está en favoritos
+        is_favorite = False
+        if self.request.user.is_authenticated and team_id:
+            is_favorite = FavoriteTeam.objects.filter(
+                user=self.request.user, team_id=team_id
+            ).exists()
+        context["is_favorite"] = is_favorite
         return context
 
 
@@ -525,6 +533,13 @@ class AnalisisAvanzadoView(generic.TemplateView):
                     -10:
                 ]  # Últimos 10 para la tabla
 
+                is_favorite = False
+                if self.request.user.is_authenticated and team_id:
+                    is_favorite = FavoriteTeam.objects.filter(
+                        user=self.request.user, team_id=team_id
+                    ).exists()
+                context["is_favorite"] = is_favorite
+
         return context
 
 
@@ -585,3 +600,57 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect("tracker:home")
+
+
+from django.http import JsonResponse
+from .models import FavoriteTeam
+
+
+@login_required(login_url="tracker:login")
+def toggle_favorite_team(request):
+    """Agrega o quita un equipo de favoritos"""
+    if request.method == "POST":
+        team_id = request.POST.get("team_id")
+        team_name = request.POST.get("team_name")
+        team_crest = request.POST.get("team_crest", "")
+        league_id = request.POST.get("league_id")
+
+        if not team_id or not team_name:
+            return JsonResponse(
+                {"status": "error", "message": "Datos incompletos"}, status=400
+            )
+
+        try:
+            team_id = int(team_id)
+            favorite = FavoriteTeam.objects.filter(user=request.user, team_id=team_id)
+
+            if favorite.exists():
+                favorite.delete()
+                is_favorite = False
+            else:
+                FavoriteTeam.objects.create(
+                    user=request.user,
+                    team_id=team_id,
+                    team_name=team_name,
+                    team_crest=team_crest,
+                    league_id=league_id,
+                )
+                is_favorite = True
+
+            return JsonResponse({"status": "success", "is_favorite": is_favorite})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+    return JsonResponse(
+        {"status": "error", "message": "Método no permitido"}, status=405
+    )
+
+
+@login_required(login_url="tracker:login")
+def favorite_teams_view(request):
+    """Muestra los equipos favoritos del usuario"""
+    favorites = FavoriteTeam.objects.filter(user=request.user).order_by("-created_at")
+    context = {
+        "favorites": favorites,
+    }
+    return render(request, "tracker/favoritos.html", context)
