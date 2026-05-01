@@ -149,3 +149,28 @@ class PlayerServiceTests(TestCase):
         self.assertEqual(len(players), 2)
         self.assertEqual(players[0]["team_name"], "Team A")
         self.assertEqual(players[0]["team_crest"], "crest.png")
+
+class ViewAdvancedTests(TestCase):
+
+    @patch("tracker.views.fetch_teams")
+    @patch("tracker.views.fetch_scorers")
+    @patch("tracker.views.fetch_competitions")
+    def test_home_view_with_league_parameter(
+        self, mock_fetch_competitions, mock_fetch_scorers, mock_fetch_teams
+    ):
+        mock_fetch_competitions.return_value = [
+            {
+                "id": 2021,
+                "name": "Premier League",
+                "code": "PL",
+                "currentSeason": {"startDate": "2025-08-01"},
+            }
+        ]
+
+        mock_fetch_scorers.return_value = []
+        mock_fetch_teams.return_value = []
+
+        response = self.client.get("/tracker/home/?league=2021")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(response.context["selected_league"])
