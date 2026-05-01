@@ -65,8 +65,7 @@
         </a>
         {% endif %}
 {% if request.resolver_match.url_name != 'home' %}
-<a href="{% url 'tracker:home' %}" 
-   class="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-green-500 transition">
+<a href="{% url 'tracker:home' %}{% if request.GET.league %}?league={{ request.GET.league }}{% endif %}"   class="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-green-500 transition">
     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
     <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
 </svg>
