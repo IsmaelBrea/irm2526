@@ -1,3 +1,5 @@
+from multiprocessing import context
+import os
 from django.views import generic
 from django.http import JsonResponse
 from urllib3 import request
@@ -21,10 +23,10 @@ from .services import (
     merge_and_sort_infractions,
     fetch_team_detail,
     fetch_team_matches,
+    get_coords_from_address,
 )
 import pandas as pd
 from datetime import datetime
-
 
 NATIONALITY_TO_ISO = {
     "Germany": "de",
@@ -313,37 +315,42 @@ class PartidosView(generic.TemplateView):
         return context
 
 
+# tracker/views.py
+
+
 class AnalisisAvanzadoView(generic.TemplateView):
     template_name = "tracker/analisis_avanzado.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # 1. Cargar Ligas para el sidebar lateral
         all_leagues = fetch_competitions()
         target_ids = [2001, 2000, 2021, 2014, 2019, 2002, 2015]
         context["leagues"] = [l for l in all_leagues if l["id"] in target_ids]
 
-        # 2. Obtener parámetros de la URL
         league_id = self.request.GET.get("league")
         team_id = self.request.GET.get("team")
 
-        # Si hay una liga seleccionada, cargamos sus equipos para el buscador
         if league_id:
             context["teams"] = fetch_teams(league_id)
             context["selected_league_id"] = league_id
+            # Recuperar objeto de la liga seleccionada para la cabecera
+            for l in all_leagues:
+                if str(l["id"]) == str(league_id):
+                    context["selected_league"] = l
+                    break
 
-        # 3. Procesamiento profundo si hay un equipo seleccionado
         if team_id:
-            # Llamadas a servicios
             team_detail = fetch_team_detail(team_id)
             matches_raw = fetch_team_matches(team_id)
 
             if team_detail and matches_raw:
-                # --- PROCESAMIENTO CON PANDAS (F17) ---
-                df_matches = pd.DataFrame(matches_raw)
+                # 1. LOCALIZACIÓN
+                address = team_detail.get("address")
+                context["team_coords"] = get_coords_from_address(address)
+                context["maps_js_key"] = os.getenv("MAPS_JS_API_KEY")
 
-                # Limpieza: Extraer goles de la estructura anidada de la API
+                # 2. PROCESAMIENTO DE PARTIDOS (PANDAS)
+                df_matches = pd.DataFrame(matches_raw)
                 df_matches["goals_for"] = df_matches.apply(
                     lambda x: (
                         x["score"]["fullTime"]["home"]
@@ -361,146 +368,28 @@ class AnalisisAvanzadoView(generic.TemplateView):
                     axis=1,
                 )
 
-                # Cálculo de Medias Móviles (F4)
-                # Calculamos el promedio de goles a favor de los últimos 5 partidos
-                avg_goals_for = df_matches["goals_for"].tail(5).mean()
-                avg_goals_against = df_matches["goals_against"].tail(5).mean()
-
-                # Squad Deep-Dive: Procesar plantilla
-                squad_data = team_detail.get("squad", [])
-                df_squad = pd.DataFrame(squad_data)
-
-                # Ordenar por posición (Goalkeepers -> Defenders -> etc)
-                pos_order = {"Goalkeeper": 0, "Defence": 1, "Midfield": 2, "Offence": 3}
-                if not df_squad.empty:
-                    df_squad["pos_idx"] = df_squad["position"].map(pos_order)
-                    df_squad = df_squad.sort_values("pos_idx")
-
-                # Preparar Contexto
-                context["team"] = team_detail
                 context["stats"] = {
-                    "avg_goals_for": round(avg_goals_for, 2),
-                    "avg_goals_against": round(avg_goals_against, 2),
+                    "avg_goals_for": round(df_matches["goals_for"].tail(5).mean(), 2),
+                    "avg_goals_against": round(
+                        df_matches["goals_against"].tail(5).mean(), 2
+                    ),
                     "total_matches": len(df_matches),
                 }
-                context["recent_matches"] = matches_raw[
-                    -10:
-                ]  # Últimos 10 para la tabla
-                context["squad"] = df_squad.to_dict("records")
+                context["recent_matches"] = matches_raw[-10:]
 
-        return context
-
-
-# --- DICCIONARIO GLOBAL (Fuera de las clases) ---
-NATIONALITY_TO_ISO = {
-    "Germany": "de",
-    "Spain": "es",
-    "France": "fr",
-    "Italy": "it",
-    "England": "gb-eng",
-    "Portugal": "pt",
-    "Netherlands": "nl",
-    "Belgium": "be",
-    "Brazil": "br",
-    "Argentina": "ar",
-    "Uruguay": "uy",
-    "Colombia": "co",
-    "Croatia": "hr",
-    "Poland": "pl",
-    "Denmark": "dk",
-    "Sweden": "se",
-    "Norway": "no",
-    "Austria": "at",
-    "Switzerland": "ch",
-    "Morocco": "ma",
-    "Senegal": "sn",
-    "Nigeria": "ng",
-    "Japan": "jp",
-    "South Korea": "kr",
-    "USA": "us",
-    "Mexico": "mx",
-    "Serbia": "rs",
-    "Wales": "gb-wls",
-    "Scotland": "gb-sct",
-    "Ireland": "ie",
-    "Algeria": "dz",
-    "Cameroon": "cm",
-}
-
-
-# --- VISTA DE ANÁLISIS AVANZADO ---
-class AnalisisAvanzadoView(generic.TemplateView):
-    template_name = "tracker/analisis_avanzado.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        # 1. Cargar Ligas para el sidebar
-        all_leagues = fetch_competitions()
-        target_ids = [2001, 2000, 2021, 2014, 2019, 2002, 2015]
-        context["leagues"] = [l for l in all_leagues if l["id"] in target_ids]
-
-        # 2. Obtener parámetros de la URL
-        league_id = self.request.GET.get("league")
-        team_id = self.request.GET.get("team")
-
-        if league_id:
-            context["teams"] = fetch_teams(league_id)
-            context["selected_league_id"] = league_id
-
-        # 3. Procesamiento profundo con Pandas
-        if team_id:
-            team_detail = fetch_team_detail(team_id)
-            matches_raw = fetch_team_matches(team_id)
-
-            if team_detail and matches_raw:
-                # --- PROCESAMIENTO DE PARTIDOS ---
-                df_matches = pd.DataFrame(matches_raw)
-
-                # Limpieza de goles (Local vs Visitante)
-                df_matches["goals_for"] = df_matches.apply(
-                    lambda x: (
-                        x["score"]["fullTime"]["home"]
-                        if str(x["homeTeam"]["id"]) == str(team_id)
-                        else x["score"]["fullTime"]["away"]
-                    ),
-                    axis=1,
-                )
-                df_matches["goals_against"] = df_matches.apply(
-                    lambda x: (
-                        x["score"]["fullTime"]["away"]
-                        if str(x["homeTeam"]["id"]) == str(team_id)
-                        else x["score"]["fullTime"]["home"]
-                    ),
-                    axis=1,
-                )
-
-                # Medias móviles de rendimiento
-                avg_goals_for = df_matches["goals_for"].tail(5).mean()
-                avg_goals_against = df_matches["goals_against"].tail(5).mean()
-
-                # --- PROCESAMIENTO DE PLANTILLA ---
+                # 3. PROCESAMIENTO DE PLANTILLA Y BANDERAS (CRÍTICO)
                 squad_data = team_detail.get("squad", [])
-                df_squad = pd.DataFrame(squad_data)
+                if squad_data:
+                    df_squad = pd.DataFrame(squad_data)
 
-                if not df_squad.empty:
-                    # Cálculo de Edad con Pandas
-                    if "dateOfBirth" in df_squad.columns:
-                        df_squad["dateOfBirth"] = pd.to_datetime(
-                            df_squad["dateOfBirth"]
-                        )
-                        df_squad["age"] = (
-                            datetime.now().year - df_squad["dateOfBirth"].dt.year
-                        )
-
-                    # Mapeo de Banderas (ISO Codes)
+                    # Mapear códigos de banderas
                     df_squad["flag_code"] = (
                         df_squad["nationality"]
                         .fillna("")
                         .map(lambda n: NATIONALITY_TO_ISO.get(n, "").lower())
                     )
 
-                    # Ordenar por posición deportiva
+                    # Ordenar posiciones
                     pos_order = {
                         "Goalkeeper": 0,
                         "Defence": 1,
@@ -512,15 +401,6 @@ class AnalisisAvanzadoView(generic.TemplateView):
 
                     context["squad"] = df_squad.to_dict("records")
 
-                # --- DATOS FINALES AL CONTEXTO ---
                 context["team"] = team_detail
-                context["stats"] = {
-                    "avg_goals_for": round(avg_goals_for, 2),
-                    "avg_goals_against": round(avg_goals_against, 2),
-                    "total_matches": len(df_matches),
-                }
-                context["recent_matches"] = matches_raw[
-                    -10:
-                ]  # Últimos 10 para la tabla
 
         return context

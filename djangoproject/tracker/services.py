@@ -927,3 +927,25 @@ def match_odds_to_matches(matches, odds_list):
                 match["odds"] = all_odds
 
     return matches
+
+
+def get_coords_from_address(address):
+    if not address or address == "—":
+        return None
+
+    # Limpiamos un poco la dirección quitando códigos postales raros si fuera necesario
+    api_key = os.getenv("GEOCODING_API_KEY")
+    url = f"https://maps.googleapis.com/maps/api/geocode/json?address={requests.utils.quote(address)}&key={api_key}"
+
+    try:
+        response = requests.get(url, timeout=5)
+        data = response.json()
+        if data["status"] == "OK":
+            return data["results"][0]["geometry"]["location"]
+        else:
+            print(
+                f"DEBUG MAPA: Google respondió {data['status']} para la dirección: {address}"
+            )
+    except Exception as e:
+        print(f"DEBUG MAPA: Error de conexión: {e}")
+    return None
