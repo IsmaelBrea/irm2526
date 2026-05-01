@@ -1,3 +1,6 @@
+from urllib import response
+
+from django.urls import reverse
 from django.views import generic
 from django.http import JsonResponse
 from urllib3 import request
@@ -24,7 +27,6 @@ from .services import (
 )
 import pandas as pd
 from datetime import datetime
-
 
 NATIONALITY_TO_ISO = {
     "Germany": "de",
@@ -524,3 +526,62 @@ class AnalisisAvanzadoView(generic.TemplateView):
                 ]  # Últimos 10 para la tabla
 
         return context
+
+
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from .forms import UserRegisterForm, UserLoginForm
+
+
+class RegisterView(generic.CreateView):
+    form_class = UserRegisterForm
+    template_name = "tracker/register.html"
+
+    def get_success_url(self):
+        return reverse("tracker:home")
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = form.save()
+        login(self.request, user)
+        return response
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect("tracker:home")
+
+    if request.method == "POST":
+        form = UserLoginForm(request.POST)
+        if form.is_valid():
+            username_or_email = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
+
+            user = authenticate(request, username=username_or_email, password=password)
+
+            if user is None:
+                try:
+                    user_obj = User.objects.get(email=username_or_email)
+                    user = authenticate(
+                        request, username=user_obj.username, password=password
+                    )
+                except User.DoesNotExist:
+                    user = None
+
+            if user is not None:
+                login(request, user)
+                return redirect("tracker:home")
+            else:
+                form.add_error(None, "Credenciales inválidas")
+    else:
+        form = UserLoginForm()
+
+    return render(request, "tracker/login.html", {"form": form})
+
+
+@login_required(login_url="tracker:login")
+def logout_view(request):
+    logout(request)
+    return redirect("tracker:home")
