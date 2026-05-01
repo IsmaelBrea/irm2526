@@ -2,6 +2,7 @@ from django.test import TestCase
 from unittest.mock import patch, Mock
 from .services import fetch_competitions, fetch_teams
 from .services import fetch_scorers, fetch_standings
+from django.urls import reverse
 
 
 class ServiceBasicTests(TestCase):
@@ -72,3 +73,29 @@ class ServiceAdvancedTests(TestCase):
 
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0]["position"], 1)
+
+class ViewTests(TestCase):
+
+    @patch("tracker.views.fetch_competitions")
+    def test_home_view_loads(self, mock_fetch):
+        mock_fetch.return_value = []
+
+        response = self.client.get(reverse("tracker:home"))
+
+        self.assertEqual(response.status_code, 200)
+
+    @patch("tracker.views.fetch_competitions")
+    def test_rend_individual_view_loads(self, mock_fetch):
+        mock_fetch.return_value = []
+
+        response = self.client.get(reverse("tracker:league-detail"))
+
+        self.assertEqual(response.status_code, 200)
+
+    @patch("tracker.views.fetch_competitions")
+    def test_datos_jugador_view_loads(self, mock_fetch):
+        mock_fetch.return_value = []
+
+        response = self.client.get(reverse("tracker:datos-jugador"))
+
+        self.assertEqual(response.status_code, 200)
