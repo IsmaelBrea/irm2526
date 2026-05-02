@@ -1,5 +1,8 @@
 from multiprocessing import context
 import os
+from urllib import response
+
+from django.urls import reverse
 from django.views import generic
 from django.http import JsonResponse
 from urllib3 import request
@@ -423,4 +426,124 @@ class AnalisisAvanzadoView(generic.TemplateView):
 
                 context["team"] = team_detail
 
+                is_favorite = False
+                if self.request.user.is_authenticated and team_id:
+                    is_favorite = FavoriteTeam.objects.filter(
+                        user=self.request.user, team_id=team_id
+                    ).exists()
+                context["is_favorite"] = is_favorite
+
         return context
+
+
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from .forms import UserRegisterForm, UserLoginForm
+
+
+class RegisterView(generic.CreateView):
+    form_class = UserRegisterForm
+    template_name = "tracker/register.html"
+
+    def get_success_url(self):
+        return reverse("tracker:home")
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = form.save()
+        login(self.request, user)
+        return response
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect("tracker:home")
+
+    if request.method == "POST":
+        form = UserLoginForm(request.POST)
+        if form.is_valid():
+            username_or_email = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
+
+            user = authenticate(request, username=username_or_email, password=password)
+
+            if user is None:
+                try:
+                    user_obj = User.objects.get(email=username_or_email)
+                    user = authenticate(
+                        request, username=user_obj.username, password=password
+                    )
+                except User.DoesNotExist:
+                    user = None
+
+            if user is not None:
+                login(request, user)
+                return redirect("tracker:home")
+            else:
+                form.add_error(None, "Credenciales inválidas")
+    else:
+        form = UserLoginForm()
+
+    return render(request, "tracker/login.html", {"form": form})
+
+
+@login_required(login_url="tracker:login")
+def logout_view(request):
+    logout(request)
+    return redirect("tracker:home")
+
+
+from django.http import JsonResponse
+from .models import FavoriteTeam
+
+
+@login_required(login_url="tracker:login")
+def toggle_favorite_team(request):
+    """Agrega o quita un equipo de favoritos"""
+    if request.method == "POST":
+        team_id = request.POST.get("team_id")
+        team_name = request.POST.get("team_name")
+        team_crest = request.POST.get("team_crest", "")
+        league_id = request.POST.get("league_id")
+
+        if not team_id or not team_name:
+            return JsonResponse(
+                {"status": "error", "message": "Datos incompletos"}, status=400
+            )
+
+        try:
+            team_id = int(team_id)
+            favorite = FavoriteTeam.objects.filter(user=request.user, team_id=team_id)
+
+            if favorite.exists():
+                favorite.delete()
+                is_favorite = False
+            else:
+                FavoriteTeam.objects.create(
+                    user=request.user,
+                    team_id=team_id,
+                    team_name=team_name,
+                    team_crest=team_crest,
+                    league_id=league_id,
+                )
+                is_favorite = True
+
+            return JsonResponse({"status": "success", "is_favorite": is_favorite})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+    return JsonResponse(
+        {"status": "error", "message": "Método no permitido"}, status=405
+    )
+
+
+@login_required(login_url="tracker:login")
+def favorite_teams_view(request):
+    """Muestra los equipos favoritos del usuario"""
+    favorites = FavoriteTeam.objects.filter(user=request.user).order_by("-created_at")
+    context = {
+        "favorites": favorites,
+    }
+    return render(request, "tracker/favoritos.html", context)

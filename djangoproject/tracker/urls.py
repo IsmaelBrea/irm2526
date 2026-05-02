@@ -23,4 +23,9 @@ urlpatterns = [
         views.AnalisisAvanzadoView.as_view(),
         name="analisis-avanzado",
     ),
+    path("login/", views.login_view, name="login"),
+    path("logout/", views.logout_view, name="logout"),
+    path("register/", views.RegisterView.as_view(), name="register"),
+    path("favoritos/", views.favorite_teams_view, name="favoritos"),
+    path("toggle-favorite/", views.toggle_favorite_team, name="toggle_favorite"),
 ]
