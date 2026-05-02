@@ -25,16 +25,24 @@ const PLOTLY_CONFIG = { displayModeBar: false, responsive: true };
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    // ── RESET AL CARGAR ──
+    // Leer preselect de la URL ANTES de cualquier reset
+    const urlParams = new URLSearchParams(window.location.search);
+    const preselectId = urlParams.get('preselect');
+
     const resetSelectors = () => {
         ['search-local', 'search-visitor'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
         });
+
         ['select-local', 'select-visitor'].forEach(id => {
             const el = document.getElementById(id);
-            if (el) el.value = '';
+            if (!el) return;
+            // Solo preservar select-local si hay preselect en URL
+            if (id === 'select-local' && preselectId) return;
+            el.value = '';
         });
+
         ['display-local', 'display-visitor'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -42,11 +50,39 @@ document.addEventListener('DOMContentLoaded', function () {
                 el.className = "h-14 border border-dashed border-slate-800 rounded-[1.2rem] flex items-center justify-center text-slate-500 text-[10px] uppercase font-mono px-6 text-center transition-all duration-300";
             }
         });
+
         const container = document.getElementById('results-container');
         if (container) container.classList.add('hidden');
     };
 
     resetSelectors();
+
+    // Setup (solo una vez cada uno)
+    setupDropdown('btn-open-local',   'dropdown-local',   'select-local',   'display-local',   'search-local');
+    setupDropdown('btn-open-visitor', 'dropdown-visitor', 'select-visitor', 'display-visitor', 'search-visitor');
+    setupFilter('search-local',   'dropdown-local');
+    setupFilter('search-visitor', 'dropdown-visitor');
+
+    // PRE-SELECCIÓN usando el ID de la URL directamente
+    if (preselectId) {
+        const option = document.querySelector(`#dropdown-local .team-option[data-id="${preselectId}"]`);
+        if (option) {
+            const name  = option.dataset.name;
+            const crest = option.dataset.crest;
+
+            // Actualizar el input hidden
+            document.getElementById('select-local').value = preselectId;
+            // Actualizar el buscador
+            document.getElementById('search-local').value = name;
+            // Actualizar el display
+            const display = document.getElementById('display-local');
+            display.innerHTML = crest
+                ? `<img src="${crest}" class="w-8 h-8 object-contain mr-3"><span>${name}</span>`
+                : `<span>${name}</span>`;
+            display.className = "h-14 border border-dashed border-green-500/40 bg-green-500/5 rounded-[1.2rem] flex items-center justify-center text-green-500 text-xs font-black uppercase font-mono px-6 text-center shadow-inner gap-2";
+        }
+    }
+
 
     // ── DROPDOWN CUSTOM (botón +) ──
     function setupDropdown(btnId, dropdownId, hiddenInputId, displayId, searchInputId) {

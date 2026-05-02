@@ -142,6 +142,16 @@ class HomeView(generic.TemplateView):
 
         context["selected_league"] = selected_league
         context["scorers"] = scorers
+        context["preselect_team_id"] = self.request.GET.get("preselect", "")
+
+        preselect_team = None
+        if context["preselect_team_id"] and context.get("teams"):
+            for t in context["teams"]:
+                if str(t["id"]) == str(context["preselect_team_id"]):
+                    preselect_team = t
+                    break
+        context["preselect_team"] = preselect_team
+
         return context
 
 
