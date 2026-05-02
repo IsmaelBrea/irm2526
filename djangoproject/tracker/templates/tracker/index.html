@@ -24,6 +24,7 @@
         <div class="flex flex-col lg:flex-row items-stretch gap-4 w-full"> 
             {# Local #}
             <div class="flex-1 min-h-[150px] p-6 bg-slate-900/50 border border-slate-800 rounded-[2rem] space-y-4 relative flex flex-col justify-center">
+                <input type="hidden" id="select-local" value="" data-preselect="{{ preselect_team_id }}">
                 <p class="text-[10px] font-bold text-white uppercase tracking-widest">Equipo Local</p>
                 <div class="space-y-3">
                     <div class="flex items-center gap-2 relative"> 
@@ -42,7 +43,6 @@
                                 +
                             </button>
                             <div id="dropdown-local" class="team-dropdown hidden absolute right-0 top-full mt-1 z-50 w-56 bg-slate-900 border border-slate-700 rounded-xl overflow-y-auto shadow-2xl" style="max-height:170px;">
-                                <input type="hidden" id="select-local" value="">
                                 {% for team in teams %}
                                 <div class="team-option px-4 py-2 text-xs text-slate-300 cursor-pointer hover:bg-slate-800 hover:text-green-500 transition-colors flex items-center gap-3"
                                      data-id="{{ team.id }}" data-name="{{ team.name }}" data-crest="{{ team.crest }}">
@@ -61,6 +61,7 @@
 
             {# Visitante #}
             <div class="flex-1 min-h-[150px] p-6 bg-slate-900/50 border border-slate-800 rounded-[2rem] space-y-4 relative flex flex-col justify-center">
+                <input type="hidden" id="select-visitor" value="">
                 <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Equipo Visitante</p>
                 <div class="space-y-3">
                     <div class="flex items-center gap-2 relative">
@@ -79,7 +80,6 @@
                                 +
                             </button>
                             <div id="dropdown-visitor" class="team-dropdown hidden absolute right-0 top-full mt-1 z-50 w-56 bg-slate-900 border border-slate-700 rounded-xl overflow-y-auto shadow-2xl" style="max-height:170px;">
-                                <input type="hidden" id="select-visitor" value="">
                                 {% for team in teams %}
                                 <div class="team-option px-4 py-2 text-xs text-slate-300 cursor-pointer hover:bg-slate-800 hover:text-green-500 transition-colors flex items-center gap-3"
                                      data-id="{{ team.id }}" data-name="{{ team.name }}" data-crest="{{ team.crest }}">
