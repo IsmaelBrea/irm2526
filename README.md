@@ -136,64 +136,61 @@ En la vista de Rendimiento Individual tras mostrar rankings individuales de juga
 
 ### F15. Consulta de los datos de un jugador de un equipo
 
-En la vista de Datos Jugador, se puede obtener información de un jugador de un equipo concreto
+En la vista de Datos Jugador, se puede obtener información de cualquier jugador (buscador derecho) de cualquier equipo (dropdown izquierdo) de la liga seleccionada
 
 <img src="imagenes/f15.png" alt="Foto" width="1000" />
 
 
 ### F16. Consulta de resultados de partidos anteriores y fechas de próximos partidos 
 
+En la vista de Partidos nos aparecerán los partidos de la jornada actual o más próxima al momento actual, mostrando resultado u horario si no de disputó el encuentro todavía. También se podrá seleccionar la jornada y temporada concreta que se desee consultar.
 
 <img src="imagenes/f16.png" alt="Foto" width="1000" />
+
+<img src="imagenes/f16(2).png" alt="Foto" width="1000" />
 
 
 ### F17. Consulta de cuotas deportivas para futuros partidos 
 
+Si en un partido concreto se selecciona el botón de ver cuotas, aparecerá un cuadro con información de las cuotas para ese partido concreto
+
+<img src="imagenes/f17.png" alt="Foto" width="1000" />
+
+### F18. Iniciar sesión
+
+Si en cualquier vista, en la parte superior derecha, seleccionamos en "Iniciar Sesión", nos llevará a la vista de Inicio de Sesión, donde podremos introducir nuestras credenciales, correo o usuario y contraseña.
+
+<img src="imagenes/f18.png" alt="Foto" width="300" />
+
+Una vez iniciada la sesión, en la parte superior derecha ahora se nos indicará nuestro usuario y si interaccionamos con este aparecerán las siguientes opciones
+
+<img src="imagenes/f18(2).png" alt="Foto" width="300" />
 
 
-### F18. 
+### F19. Registrarse con una nueva cuenta
 
+Si en la vista de Inicio de Sesión, seleccionamos "Registrarse aquí" nos llevará a la vista de Registro, la cual permite crear una nueva cuenta introduciendo los campos usuario, correo electrónico y la contraseña con su confirmación.
 
+<img src="imagenes/f19.png" alt="Foto" width="300" />
 
+### F20. Agregar un equipo como favorito del usuario actual
 
+Si previamente iniciamos sesión con una cuenta, se nos permite marcar un icono de estrella en la vista de Análisis Avanzado.
 
+<img src="imagenes/f20.png" alt="Foto" width="300" />
 
+De esta manera se marca el equipo como favorito.
 
+<img src="imagenes/f20(2).png" alt="Foto" width="300" />
 
-- F8. Consulta de últimos partidos de un equipo: Permite visualizar el historial reciente de un equipo.
-Entrada: ID del equipo.
-Salida: Lista de los últimos 10 partidos (ampliables) con resultados.
+Una vez marcado, se podrá acceder a la sección de favoritos de la cuenta para consultar el equipo o eliminarlo de favoritos.
 
-- F9. Consulta de estadísticas de jugadores: Permite visualizar estadísticas individuales de jugadores de un equipo.
-Entrada: ID del equipo.
-Salida: Lista de jugadores con estadísticas relevantes.
+<img src="imagenes/f20(3).png" alt="Foto" width="200" />
 
-- F10. Ranking de jugadores por liga: Muestra rankings de jugadores dentro de una liga.
-Entrada: ID de liga.
-Salida: Máximos goleadores, máximos asistentes, mayor número de tarjetas rojas y mayor número de tarjetas amarillas.
+<img src="imagenes/f20(4).png" alt="Foto" width="300" />
 
-- F11. Navegación entre módulos: Permite moverse entre las distintas secciones de la aplicación.
-Entrada: Interacciones del usuario.
-Salida: Cambio de vista manteniendo el contexto.
-
-- F12. Persistencia de estado: Mantiene la selección de liga y equipos durante la navegación.
-Entrada: Acciones del usuario.
-Salida: Estado guardado durante la sesión.
-
-- F13. Obtención de datos desde API-Football: Recupera datos de ligas, equipos, partidos y jugadores desde la API externa.
-Entrada: Peticiones HTTP a la API.
-Salida: Datos estructurados en formato JSON.
-
-- F14. Procesamiento de datos: Transforma los datos obtenidos en información útil para el sistema.
-Entrada: Datos en bruto de la API.
-Salida: Datos procesados para visualización y análisis.
-
-- F15. Gestión de errores: Maneja errores en peticiones o datos inconsistentes.
-Entrada: Fallos en la API o datos inválidos.
-Salida: Mensajes de error controlados para el usuario.
 
 ---
-
 
 ## Integrantes Grupos
 - Ismael Brea Arias <ismael.brea@udc.es>
@@ -209,13 +206,15 @@ Salida: Mensajes de error controlados para el usuario.
 - Cualquier otra información de relevancia
 
 ### Secuencia de comandos (docker) para descargar y lanzar la aplicación:
-*Paso 1:* Clonar este repositorio de GitHub y cambiarnos a su carpeta principal
-bash 
+**Paso 1:** 
+
+Clonar este repositorio de GitHub y cambiarnos a su carpeta principal
+``` bash
 git clone <>
 cd pi2526-irm2526
+```
 
-
-*Paso 2:* Una vez dentro ejecutar el siguiente comando de docker. IMPORTANTE: copiar antes el .env a la carpeta raíz del proyecto (al nivel del Dockerfile). Una vez hecho eso ejecutar:
+**Paso 2:** Una vez dentro ejecutar el siguiente comando de docker. IMPORTANTE: copiar antes el .env a la carpeta raíz del proyecto (al nivel del Dockerfile). Una vez hecho eso ejecutar:
 bash
 docker build -t irm .
 
@@ -225,7 +224,9 @@ bash
 docker run -it -p 8000:8000 irm
 
 
-*Paso 4:* Acceder a http://127.0.0.1:8000/ para visualizar la aplicación
+**Paso 4:** 
+
+Acceder a http://127.0.0.1:8000/ para visualizar la aplicación
 
 - docker run --rm -it -v /var/lib/docker:/docker -v ~/volume-backup/docker/volumes:/volume-backup alpine:edge cp -r /volume-backup/data-vol /docker/volumes
 - [...]
@@ -235,6 +236,8 @@ docker run -it -p 8000:8000 irm
 
 
 ## Problemas conocidos
+
+- Nuestras cuentas (e IPs) de la API API-FOOTBALL están baneadas, si la key del .env está suspendida habría que usar otra de otra cuenta.
 - Lorem
 - Ipsum
 
