@@ -186,3 +186,15 @@ class AuthenticationTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
+
+    def test_login_incorrecto(self):
+
+        response = self.client.post(
+            reverse("tracker:login"),
+            {
+                "username": "manuel",
+                "password": "malpassword"
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
