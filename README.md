@@ -6,7 +6,7 @@
 <!-- Si quereis hacerle un logo (con IA o como prefirais) ya es lucirse y queda muy bien :) -->
 <img width="300" src="https://github.com/user-attachments/assets/bdbafec2-f468-4623-9175-80f9ed86fd1c" align="right"/>
 
-## Índice
+# Índice
 
 - [IRM Performance](#irm-performance)
 - [Vistas](#vistas)
@@ -17,6 +17,8 @@
 - [Problemas conocidos](#problemas-conocidos)
 - [Integrantes Grupos](#integrantes-grupos)
 
+---
+
 # IRM Performance
 <p align="justify">
 El proyecto IRM Performance Tracker consiste en el desarrollo de una aplicación web bajo el framework Django que permite analizar el rendimiento de equipos y jugadores de fútbol mediante el uso de Python en el lado del servidor. El sistema integrará datos en tiempo real consultados a APIs externas, para transformar estadísticas brutas en indicadores de valor. Toda la aplicación se desplegará utilizando contenedores de Docker y se gestionará mediante control de versiones en Git, asegurando un entorno de ejecución profesional y colaborativo.
@@ -26,38 +28,38 @@ El proyecto IRM Performance Tracker consiste en el desarrollo de una aplicación
 
 </p>
 
-## Vistas
+# Vistas
 
-#### Home
+### Home
 
 <img src="imagenes/Home.png" alt="Foto" width="1000" />
 
-#### Análisis avanzado
+### Análisis avanzado
 
 <img src="imagenes/AA.png" alt="Foto" width="1000" />
 
 
-#### Rendimiento Individual
+### Rendimiento Individual
 
 <img src="imagenes/RI.png" alt="Foto" width="1000" />
 
-#### Datos Jugador
+### Datos Jugador
 
 <img src="imagenes/DJ.png" alt="Foto" width="1000" />
 
-#### Partidos
+### Partidos
 
 <img src="imagenes/Partidos.png" alt="Foto" width="1000" />
 
-#### Inicio de sesión
+### Inicio de sesión
 
 <img src="imagenes/IS.png" alt="Foto" width="1000" />
 
-#### Registro
+### Registro
 
-<img src="imagenes/Registro.png" alt="Foto" width="1000" />
+<img src="imagenes/Registro.png" alt="Foto" width="200" />
 
-#### Favoritos
+### Favoritos
 
 <img src="imagenes/Fav.png" alt="Foto" width="1000" />
 
@@ -277,22 +279,22 @@ git clone <>
 cd pi2526-irm2526
 ```
 
-**Paso 2:** Una vez dentro ejecutar el siguiente comando de docker. IMPORTANTE: copiar antes el .env a la carpeta raíz del proyecto (al nivel del Dockerfile). Una vez hecho eso ejecutar:
-bash
-docker build -t irm .
+**Paso 2:** Una vez dentro ejecutar el siguiente comando de docker. 
 
+*IMPORTANTE* copiar antes el .env a la carpeta raíz del proyecto (al nivel del Dockerfile). Una vez hecho eso ejecutar:
+``` bash
+docker build -t irm .
+```
 
 *Paso 3:* Finalmente, ejecutar el contenedor creado con:
-bash
+``` bash
 docker run -it -p 8000:8000 irm
-
+```
 
 **Paso 4:** 
 
-Acceder a http://127.0.0.1:8000/ para visualizar la aplicación
+Acceder a http://localhost:8000/tracker/home para visualizar la aplicación
 
-- docker run --rm -it -v /var/lib/docker:/docker -v ~/volume-backup/docker/volumes:/volume-backup alpine:edge cp -r /volume-backup/data-vol /docker/volumes
-- [...]
 
 ---
 
@@ -300,14 +302,15 @@ Acceder a http://127.0.0.1:8000/ para visualizar la aplicación
 
 ## Problemas conocidos
 
-- Nuestras cuentas (e IPs) de la API API-FOOTBALL están baneadas, si la key del .env está suspendida habría que usar otra de otra cuenta.
-- Lorem
-- Ipsum
-- segu
-- las cosas pueden tardar en cargar
-- la api de football-data tiene límite de 10 peticiones por min
+- **API-FOOTBALL baneada**: Nuestras cuentas (e IPs) de la API API-FOOTBALL están baneadas. Si la key del .env está suspendida, es necesario usar otra clave de otra cuenta o cambiar a una alternativa.
+
+- **Límite de rate limiting en Football-data API**: La API de football-data tiene un límite de 10 peticiones por minuto. Cuando se superan las peticiones simultáneas, la aplicación puede devolver errores 429 (Too Many Requests).  Esto afecta también al selector de ligas que hay a la izquierda, impidiendo a la aplicación funcionar correctamente, en estos casos esperar un tiempo y recargar la página.
+
+- **Latencia en carga de datos**: Las vistas que cargan múltiples APIs (Análisis Avanzado, Datos Jugador) pueden tardar varios segundos en renderizar debido a las llamadas secuenciales a servicios externos.
+
+- **Dependencia de conectividad**: La aplicación requiere conexión a internet para funcionar correctamente. Sin acceso a las APIs externas, la mayoría de funcionalidades no estarán disponibles.
 
 
-(if any)
+
 
 ---
