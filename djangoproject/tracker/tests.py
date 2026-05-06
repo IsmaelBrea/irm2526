@@ -216,3 +216,11 @@ class AuthenticationTests(TestCase):
         self.assertTrue(
             User.objects.filter(username="nuevo_usuario").exists()
         )
+
+    def test_favoritos_requiere_login(self):
+
+        response = self.client.get(
+            reverse("tracker:favoritos")
+        )
+
+        self.assertNotEqual(response.status_code, 200)
