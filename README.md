@@ -271,6 +271,10 @@ Acceder a http://127.0.0.1:8000/ para visualizar la aplicación
 - Nuestras cuentas (e IPs) de la API API-FOOTBALL están baneadas, si la key del .env está suspendida habría que usar otra de otra cuenta.
 - Lorem
 - Ipsum
+- segu
+- las cosas pueden tardar en cargar
+- la api de football-data tiene límite de 10 peticiones por min
+
 
 (if any)
 
