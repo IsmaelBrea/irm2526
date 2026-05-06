@@ -28,6 +28,39 @@ El proyecto IRM Performance Tracker consiste en el desarrollo de una aplicación
 
 ## Vistas
 
+#### Home
+
+<img src="imagenes/Home.png" alt="Foto" width="1000" />
+
+#### Análisis avanzado
+
+<img src="imagenes/AA.png" alt="Foto" width="1000" />
+
+
+#### Rendimiento Individual
+
+<img src="imagenes/RI.png" alt="Foto" width="1000" />
+
+#### Datos Jugador
+
+<img src="imagenes/DJ.png" alt="Foto" width="1000" />
+
+#### Partidos
+
+<img src="imagenes/Partidos.png" alt="Foto" width="1000" />
+
+#### Inicio de sesión
+
+<img src="imagenes/IS.png" alt="Foto" width="1000" />
+
+#### Registro
+
+<img src="imagenes/Registro.png" alt="Foto" width="1000" />
+
+#### Favoritos
+
+<img src="imagenes/Fav.png" alt="Foto" width="1000" />
+
 ## APIs utilizadas
 
 **Football-data.org**
@@ -56,7 +89,6 @@ El proyecto IRM Performance Tracker consiste en el desarrollo de una aplicación
 ### F1. Selección de liga:
 Permite al usuario seleccionar una liga desde un menú anclado a la izquierda.
 
-![alt text](imagenes/f1.png)
 <img src="imagenes/f1.png" alt="Foto" width="1000" />
 
 Una vez seleccionada la liga aparecería el comparador de equipos.
