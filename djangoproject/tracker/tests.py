@@ -198,3 +198,21 @@ class AuthenticationTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
+
+    def test_registro_usuario(self):
+
+        response = self.client.post(
+            reverse("tracker:register"),
+            {
+                "username": "nuevo_usuario",
+                "email": "nuevo@test.com",
+                "password1": "Password12345!",
+                "password2": "Password12345!",
+            }
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertTrue(
+            User.objects.filter(username="nuevo_usuario").exists()
+        )
