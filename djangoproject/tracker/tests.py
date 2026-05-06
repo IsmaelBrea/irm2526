@@ -3,6 +3,7 @@ from unittest.mock import patch, Mock
 from .services import fetch_competitions, fetch_teams
 from .services import fetch_scorers, fetch_standings
 from django.urls import reverse
+from django.contrib.auth.models import User
 from .services import APITokenPool
 from .services import fetch_players_by_league
 
@@ -164,3 +165,24 @@ class ViewAdvancedTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(response.context["selected_league"])
+
+
+class AuthenticationTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="manuel",
+            password="1234test"
+        )
+
+    def test_login_correcto(self):
+
+        response = self.client.post(
+            reverse("tracker:login"),
+            {
+                "username": "manuel",
+                "password": "1234test"
+            }
+        )
+
+        self.assertEqual(response.status_code, 302)
