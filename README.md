@@ -4,7 +4,7 @@
 [//]: # (Member3: Manuel Valiña Pérez::manuel.valina.perez@udc.es)
 [//]: # (Teacher: Alonso Rodríguez Iglesias)
 <!-- Si quereis hacerle un logo (con IA o como prefirais) ya es lucirse y queda muy bien :) -->
-<img width="300" src="https://github.com/user-attachments/assets/bdbafec2-f468-4623-9175-80f9ed86fd1c" align="right"/>
+<img width="400" src="https://github.com/user-attachments/assets/75b1c140-68ed-4413-b727-74783dd23efa" align=right />
 
 
 
