@@ -77,6 +77,7 @@ class ViewTests(TestCase):
         response = self.client.get(reverse("tracker:home"))
 
         self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "tracker/index.html")
 
     @patch("tracker.views.fetch_competitions")
     def test_rend_individual_view_loads(self, mock_fetch):
@@ -186,6 +187,7 @@ class AuthenticationTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.wsgi_request.user.is_authenticated)
 
     def test_login_incorrecto(self):
 
@@ -198,6 +200,7 @@ class AuthenticationTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
 
     def test_registro_usuario(self):
 
@@ -223,4 +226,5 @@ class AuthenticationTests(TestCase):
             reverse("tracker:favoritos")
         )
 
-        self.assertNotEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/login", response.url)
