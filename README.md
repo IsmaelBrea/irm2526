@@ -6,6 +6,17 @@
 <!-- Si quereis hacerle un logo (con IA o como prefirais) ya es lucirse y queda muy bien :) -->
 <img width="300" src="https://github.com/user-attachments/assets/bdbafec2-f468-4623-9175-80f9ed86fd1c" align="right"/>
 
+## Índice
+
+- [IRM Performance](#irm-performance)
+- [Vistas](#vistas)
+- [APIs utilizadas](#apis-utilizadas)
+- [Listado de las funcionalidades](#listado-de-las-funcionalidades)
+
+- [Cómo ejecutar](#cómo-ejecutar)
+- [Problemas conocidos](#problemas-conocidos)
+- [Integrantes Grupos](#integrantes-grupos)
+
 # IRM Performance
 <p align="justify">
 El proyecto IRM Performance Tracker consiste en el desarrollo de una aplicación web bajo el framework Django que permite analizar el rendimiento de equipos y jugadores de fútbol mediante el uso de Python en el lado del servidor. El sistema integrará datos en tiempo real consultados a APIs externas, para transformar estadísticas brutas en indicadores de valor. Toda la aplicación se desplegará utilizando contenedores de Docker y se gestionará mediante control de versiones en Git, asegurando un entorno de ejecución profesional y colaborativo.
@@ -19,6 +30,26 @@ El proyecto IRM Performance Tracker consiste en el desarrollo de una aplicación
 
 ## APIs utilizadas
 
+**Football-data.org**
+- API principal con datos de clasificaciones, equipos y jugadores de fútbol
+
+**API-Football**
+
+- API secundaria para obtener máximos asistentes, jugadores con más tarjetas rojas y amarillas.
+
+**The Odds API**
+
+- API secundaria para obtener cuotas deportivas para partidos futuros.
+
+**Besoccer API**
+
+- API secundaria para obtener los partidos de liga por jornada y/o temporada
+
+**Google Maps Javascript API**
+- API que permite embeber mapas de Google Maps en código web
+
+**Google Maps Geocoding API** 
+- API que permite convertir direcciones de lugares en coordenadas para Google
 
 ## Listado de las funcionalidades
 
