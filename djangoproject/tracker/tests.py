@@ -27,15 +27,14 @@ class ServiceBasicTests(TestCase):
     @patch("tracker.services.requests.get")
     def test_fetch_teams_returns_data(self, mock_get, mock_token):
         mock_response = Mock()
-        mock_response.json.return_value = {
-            "teams": [{"id": 1, "name": "Team A"}]
-        }
+        mock_response.json.return_value = {"teams": [{"id": 1, "name": "Team A"}]}
         mock_get.return_value = mock_response
 
         result = fetch_teams(1)
 
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]["name"], "Team A")
+
 
 class ServiceAdvancedTests(TestCase):
 
@@ -44,9 +43,7 @@ class ServiceAdvancedTests(TestCase):
     def test_fetch_scorers(self, mock_get, mock_token):
         mock_response = Mock()
         mock_response.json.return_value = {
-            "scorers": [
-                {"player": {"name": "Player A"}, "goals": 10}
-            ]
+            "scorers": [{"player": {"name": "Player A"}, "goals": 10}]
         }
         mock_get.return_value = mock_response
 
@@ -60,14 +57,7 @@ class ServiceAdvancedTests(TestCase):
     def test_fetch_standings(self, mock_get, mock_token):
         mock_response = Mock()
         mock_response.json.return_value = {
-            "standings": [
-                {
-                    "table": [
-                        {"position": 1},
-                        {"position": 2}
-                    ]
-                }
-            ]
+            "standings": [{"table": [{"position": 1}, {"position": 2}]}]
         }
         mock_get.return_value = mock_response
 
@@ -75,6 +65,7 @@ class ServiceAdvancedTests(TestCase):
 
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0]["position"], 1)
+
 
 class ViewTests(TestCase):
 
@@ -102,6 +93,7 @@ class ViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+
 class ServiceErrorTests(TestCase):
 
     @patch("tracker.services.token_pool.get_token", return_value="fake-token")
@@ -113,6 +105,7 @@ class ServiceErrorTests(TestCase):
 
         self.assertEqual(result, [])
 
+
 class APITokenPoolTests(TestCase):
 
     def test_token_pool_rotates_tokens(self):
@@ -122,6 +115,7 @@ class APITokenPoolTests(TestCase):
         self.assertEqual(pool.get_token(), "token2")
         self.assertEqual(pool.get_token(), "token1")
 
+
 class PlayerServiceTests(TestCase):
 
     @patch("tracker.services.token_pool.get_token", return_value="fake-token")
@@ -129,18 +123,13 @@ class PlayerServiceTests(TestCase):
     @patch("tracker.services.requests.get")
     def test_fetch_players_by_league(self, mock_get, mock_fetch_teams, mock_token):
 
-        # Mock equipos
         mock_fetch_teams.return_value = [
             {"id": 1, "name": "Team A", "crest": "crest.png"}
         ]
 
-        # Mock respuesta API jugadores
         mock_response = Mock()
         mock_response.json.return_value = {
-            "squad": [
-                {"id": 10, "name": "Player A"},
-                {"id": 11, "name": "Player B"}
-            ]
+            "squad": [{"id": 10, "name": "Player A"}, {"id": 11, "name": "Player B"}]
         }
         mock_get.return_value = mock_response
 
@@ -149,6 +138,7 @@ class PlayerServiceTests(TestCase):
         self.assertEqual(len(players), 2)
         self.assertEqual(players[0]["team_name"], "Team A")
         self.assertEqual(players[0]["team_crest"], "crest.png")
+
 
 class ViewAdvancedTests(TestCase):
 

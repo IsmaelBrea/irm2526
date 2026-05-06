@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class League(models.Model):
@@ -6,9 +7,6 @@ class League(models.Model):
 
     def __str__(self):
         return self.name
-
-
-from django.contrib.auth.models import User
 
 
 class FavoriteTeam(models.Model):

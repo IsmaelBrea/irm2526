@@ -1,7 +1,8 @@
 from multiprocessing import context
 import os
 from urllib import response
-
+import pandas as pd
+from datetime import datetime
 from django.urls import reverse
 from django.views import generic
 from django.http import JsonResponse
@@ -28,8 +29,11 @@ from .services import (
     fetch_team_matches,
     get_coords_from_address,
 )
-import pandas as pd
-from datetime import datetime
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from .forms import UserRegisterForm, UserLoginForm
 
 NATIONALITY_TO_ISO = {
     "Germany": "de",
@@ -140,7 +144,6 @@ class HomeView(generic.TemplateView):
 
                     break
 
-            # Si hay liga, traemos equipos (Funcionalidad F2)
             context["teams"] = fetch_teams(selected_league_id)
 
         context["selected_league"] = selected_league
@@ -158,11 +161,10 @@ class HomeView(generic.TemplateView):
         return context
 
 
+# Vista que une el Service (API) con el Analytics (Pandas)
+# Responde en formato JSON para que el JS actualice la interfaz sin recargar.
 def compare_teams(request, league_id, team_a_id, team_b_id):
-    """
-    Vista que une el Service (API) con el Analytics (Pandas)
-    Responde en formato JSON para que el JS actualice la interfaz sin recargar.
-    """
+
     try:
         # Obtenemos datos masivos de la API
         raw_data = fetch_performance_data(team_a_id, team_b_id, league_id)
@@ -170,7 +172,6 @@ def compare_teams(request, league_id, team_a_id, team_b_id):
         # Procesa con Pandas
         analysis_results = calculate_irm_probability(raw_data, team_a_id, team_b_id)
 
-        # Respuesta de éxito
         return JsonResponse({"status": "success", "data": analysis_results})
 
     except Exception as e:
@@ -189,12 +190,10 @@ class RendIndividualView(generic.TemplateView):
         # Obtenemos competiciones
         all_leagues = fetch_competitions()
 
-        # IDs del anteproyecto
         target_ids = [2001, 2000, 2021, 2014, 2019, 2002, 2015]
         leagues = [league for league in all_leagues if league["id"] in target_ids]
         context["leagues"] = leagues
 
-        # Gestionamos selección (Funcionalidad F1)
         selected_league_id = self.request.GET.get("league")
         selected_league = None
         scorers = []
@@ -260,8 +259,8 @@ class DatosJugadorView(generic.TemplateView):
         return context
 
 
+# Retorna competiciones del jugador
 def get_player_stats(request):
-    """Retorna competiciones del jugador"""
     player_id = request.GET.get("player_id")
 
     if not player_id:
@@ -283,8 +282,8 @@ def get_player_stats(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
+# Retorna partidos de una liga
 def get_league_matches(request):
-    """Retorna partidos de una liga"""
     league_id = request.GET.get("league_id")
     round_num = request.GET.get("round")
     year = request.GET.get("year")
@@ -326,9 +325,6 @@ class PartidosView(generic.TemplateView):
 
         context["selected_league"] = selected_league
         return context
-
-
-# tracker/views.py
 
 
 class AnalisisAvanzadoView(generic.TemplateView):
@@ -436,13 +432,6 @@ class AnalisisAvanzadoView(generic.TemplateView):
         return context
 
 
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from .forms import UserRegisterForm, UserLoginForm
-
-
 class RegisterView(generic.CreateView):
     form_class = UserRegisterForm
     template_name = "tracker/register.html"
@@ -499,9 +488,10 @@ from django.http import JsonResponse
 from .models import FavoriteTeam
 
 
+# Agrega o quita un equipo de favoritos
 @login_required(login_url="tracker:login")
 def toggle_favorite_team(request):
-    """Agrega o quita un equipo de favoritos"""
+
     if request.method == "POST":
         team_id = request.POST.get("team_id")
         team_name = request.POST.get("team_name")
@@ -539,9 +529,9 @@ def toggle_favorite_team(request):
     )
 
 
+# Muestra los equipos favoritos del usuario
 @login_required(login_url="tracker:login")
 def favorite_teams_view(request):
-    """Muestra los equipos favoritos del usuario"""
     favorites = FavoriteTeam.objects.filter(user=request.user).order_by("-created_at")
     context = {
         "favorites": favorites,

@@ -59,9 +59,7 @@ def fetch_teams(league_id):
 
 # Obtiene datos de ambos equipos
 def fetch_performance_data(team_a_id, team_b_id, league_id):
-    """
-    Recopila los datos numéricos y deportivos para la comparativa de Pandas
-    """
+
     headers = {"X-Auth-Token": token_pool.get_token()}
 
     # CLASIFICACIÓN (Para comparar posición, puntos y diferencia de goles actual)
@@ -215,7 +213,7 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
         score_a = team_score(stats_a, m_a)
         score_b = team_score(stats_b, m_b)
 
-        # Bonus por posición (mejora real del modelo)
+        # Bonus por posición
         score_a += (20 - stats_a["position"]) * 0.2
         score_b += (20 - stats_b["position"]) * 0.2
 
@@ -229,7 +227,7 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
             prob_a = round((score_a / total) * 100, 1)
             prob_b = round((score_b / total) * 100, 1)
 
-        # ── DATOS PARA GRÁFICO DE LÍNEAS ──
+        # Datos para gráficos de líneas
         def build_form_chart(df, target_id):
             if df is None or df.empty:
                 return []
@@ -268,7 +266,7 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
         form_a = build_form_chart(df_a, t_a_id)
         form_b = build_form_chart(df_b, t_b_id)
 
-        # ── DATOS PARA GRÁFICO DE BARRAS ──
+        # Datos para gráficos de barras
         bar_metrics = [
             {
                 "metrica": "Puntos Liga",
@@ -289,7 +287,7 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
             {"metrica": "Efectividad (%)", "val_a": m_a["eff"], "val_b": m_b["eff"]},
         ]
 
-        # ── DATOS H2H: últimos encuentros directos entre ambos equipos ──
+        # Datos H2H
         def build_h2h(matches, ta_id, tb_id):
             if not matches:
                 return []
@@ -403,10 +401,11 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
         }
 
 
+# Obtiene los máximos goleadores de una competición
+
+
 def fetch_scorers(league_code, season=None):
-    """
-    Obtiene los máximos goleadores de una competición
-    """
+
     url = f"https://api.football-data.org/v4/competitions/{league_code}/scorers"
     headers = {"X-Auth-Token": token_pool.get_token()}
 
@@ -421,10 +420,9 @@ def fetch_scorers(league_code, season=None):
         return []
 
 
+# Obtiene la clasificación actual de una competición
 def fetch_standings(league_code, season):
-    """
-    Obtiene la clasificación actual de una competición
-    """
+
     url = f"https://api.football-data.org/v4/competitions/{league_code}/standings"
     headers = {"X-Auth-Token": token_pool.get_token()}
     params = {"season": season}
@@ -443,8 +441,9 @@ def fetch_standings(league_code, season):
         return []
 
 
+# Obtiene todos los jugadores de todos los equipos de una liga
 def fetch_players_by_league(league_id):
-    """Obtiene todos los jugadores de todos los equipos de una liga"""
+
     teams = fetch_teams(league_id)
     players = []
 
@@ -468,8 +467,9 @@ def fetch_players_by_league(league_id):
     return players
 
 
+# Obtiene datos del jugador incluyendo competiciones actuales
 def fetch_player_person(player_id):
-    """Obtiene datos del jugador incluyendo competiciones actuales"""
+
     url = f"{BASE_URL}persons/{player_id}"
     headers = {"X-Auth-Token": token_pool.get_token()}
 
@@ -483,6 +483,7 @@ def fetch_player_person(player_id):
         return None
 
 
+# traducir id de liga entre football-data y besoccerapps
 LEAGUE_ID_MAP = {
     2001: 107,  # Champions League
     2014: 1,  # Primera División
@@ -494,8 +495,8 @@ LEAGUE_ID_MAP = {
 }
 
 
+# Obtiene partidos de una liga desde besoccerapps API
 def fetch_matches_besoccer(league_id, round_num=None, year=None):
-    """Obtiene partidos de una liga desde besoccerapps API"""
     besoccer_league_id = LEAGUE_ID_MAP.get(league_id)
 
     if not besoccer_league_id:
@@ -521,6 +522,8 @@ def fetch_matches_besoccer(league_id, round_num=None, year=None):
         return []
 
 
+# traducir id de liga entre football-data y api-football
+
 LEAGUE_ID_MAPPING = {
     2001: 2,  # Champions League
     2014: 140,  # Primera División
@@ -531,11 +534,11 @@ LEAGUE_ID_MAPPING = {
     2015: 102,  # Ligue 1
 }
 
+# Obtiene los máximos asistentes usando API-Sports
+
 
 def fetch_assists(league_id_football_data, season):
-    """
-    Obtiene los máximos asistentes usando API-Sports
-    """
+
     league_id_apisports = LEAGUE_ID_MAPPING.get(league_id_football_data)
 
     if not league_id_apisports:
@@ -562,10 +565,9 @@ def fetch_assists(league_id_football_data, season):
         return []
 
 
+# Obtiene los máximos infractores (tarjetas rojas) usando API-Sports
 def fetch_red_cards(league_id_football_data, season):
-    """
-    Obtiene los máximos infractores (tarjetas rojas) usando API-Sports
-    """
+
     league_id_apisports = LEAGUE_ID_MAPPING.get(league_id_football_data)
 
     if not league_id_apisports:
@@ -590,10 +592,9 @@ def fetch_red_cards(league_id_football_data, season):
         return []
 
 
+# Obtiene los máximos amonestados (tarjetas amarillas) usando API-Sports
 def fetch_yellow_cards(league_id_football_data, season):
-    """
-    Obtiene los máximos amonestados (tarjetas amarillas) usando API-Sports
-    """
+
     league_id_apisports = LEAGUE_ID_MAPPING.get(league_id_football_data)
 
     if not league_id_apisports:
@@ -618,11 +619,8 @@ def fetch_yellow_cards(league_id_football_data, season):
         return []
 
 
+# Función para fusionar y ordenar por total de infracciones (rojas + amarillas)
 def merge_and_sort_infractions(red_cards_data, yellow_cards_data):
-    """
-    Merges red and yellow cards data and sorts by combined total (amarillas + rojas)
-    """
-    import pandas as pd
 
     if not red_cards_data or not yellow_cards_data:
         return red_cards_data if red_cards_data else []
@@ -696,10 +694,9 @@ def merge_and_sort_infractions(red_cards_data, yellow_cards_data):
         return red_cards_data
 
 
+# Función para obtener detalle de equipo usando el Pool de Tokens
 def fetch_team_detail(team_id):
-    """
-    Obtiene la información detallada de un equipo usando el Pool de Tokens.
-    """
+
     url = f"{BASE_URL}teams/{team_id}"
 
     headers = {"X-Auth-Token": token_pool.get_token()}
@@ -714,8 +711,9 @@ def fetch_team_detail(team_id):
         return None
 
 
+# Obtiene los últimos partidos del equipo para el análisis
 def fetch_team_matches(team_id):
-    """Obtiene los últimos partidos del equipo para el análisis de forma (F4)"""
+
     url = f"{BASE_URL}teams/{team_id}/matches?status=FINISHED"
     headers = {"X-Auth-Token": token_pool.get_token()}
     try:
@@ -728,8 +726,8 @@ def fetch_team_matches(team_id):
         return []
 
 
+# Obtiene partidos de una liga
 def fetch_matches_football_data(league_id, matchday=None, season=None):
-    """Obtiene partidos de una liga desde football-data.org API"""
 
     url = f"{BASE_URL}competitions/{league_id}/matches"
     headers = {"X-Auth-Token": token_pool.get_token()}
@@ -775,7 +773,7 @@ def fetch_matches_football_data(league_id, matchday=None, season=None):
                 "local_goals": match.get("score", {}).get("fullTime", {}).get("home"),
                 "visitor_goals": match.get("score", {}).get("fullTime", {}).get("away"),
                 "status": match.get("status"),
-                "odds": {},  # Inicializar vacío
+                "odds": {},
             }
             if transformed_match["local_goals"] is None:
                 transformed_match["local_goals"] = "x"
@@ -784,7 +782,7 @@ def fetch_matches_football_data(league_id, matchday=None, season=None):
 
             matches.append(transformed_match)
 
-        # Enriquecer con odds
+        # añadir odds
         odds_list = fetch_odds(league_id)
         matches = match_odds_to_matches(matches, odds_list)
 
@@ -795,6 +793,7 @@ def fetch_matches_football_data(league_id, matchday=None, season=None):
         return []
 
 
+# traducir id de liga entre football-data a nombres the-odds-api
 SPORT_KEY_MAPPING = {
     2001: "soccer_uefa_champs_league",
     2014: "soccer_spain_la_liga",
@@ -806,8 +805,8 @@ SPORT_KEY_MAPPING = {
 }
 
 
+# Función para obtener odds de partidos
 def fetch_odds(league_id):
-    """Obtiene odds de partidos desde The Odds API"""
     sport_key = SPORT_KEY_MAPPING.get(league_id)
     if not sport_key:
         return []
@@ -825,11 +824,10 @@ def fetch_odds(league_id):
         response.raise_for_status()
         data = response.json()
 
-        # La API devuelve un diccionario con key "events"
         if isinstance(data, dict):
             events = data.get("events", [])
         elif isinstance(data, list):
-            events = data  # Si es una lista directa
+            events = data
         else:
             events = []
 
@@ -842,8 +840,9 @@ def fetch_odds(league_id):
         return []
 
 
+# Función para extraer palabras clave de los nombres de equipos y matchear
 def get_team_keywords(name):
-    """Extrae palabras clave del nombre eliminando ruido"""
+
     name = name.lower().strip()
 
     # Palabras a ignorar (prefijos/sufijos)
@@ -855,8 +854,8 @@ def get_team_keywords(name):
     return set(words)  # Retornar como conjunto para comparar fácil
 
 
+# Función para matchear odds con partidos usando palabras clave
 def match_odds_to_matches(matches, odds_list):
-    """Matchea odds con fuzzy matching por palabras clave"""
 
     for match in matches:
         match_date = match.get("date")
@@ -894,7 +893,6 @@ def match_odds_to_matches(matches, odds_list):
                         outcomes = market.get("outcomes", [])
                         odds_dict = {o.get("name"): o.get("price") for o in outcomes}
 
-                        # Buscar outcomes por palabras clave
                         home_odd = next(
                             (
                                 v
@@ -933,7 +931,6 @@ def get_coords_from_address(address):
     if not address or address == "—":
         return None
 
-    # Limpiamos un poco la dirección quitando códigos postales raros si fuera necesario
     api_key = os.getenv("GEOCODING_API_KEY")
     url = f"https://maps.googleapis.com/maps/api/geocode/json?address={requests.utils.quote(address)}&key={api_key}"
 

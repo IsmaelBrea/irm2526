@@ -6,18 +6,7 @@
 <!-- Si quereis hacerle un logo (con IA o como prefirais) ya es lucirse y queda muy bien :) -->
 <img width="300" src="https://github.com/user-attachments/assets/bdbafec2-f468-4623-9175-80f9ed86fd1c" align="right"/>
 
-# Índice
 
-- [IRM Performance](#irm-performance)
-- [Vistas](#vistas)
-- [APIs utilizadas](#apis-utilizadas)
-- [Listado de las funcionalidades](#listado-de-las-funcionalidades)
-
-- [Cómo ejecutar](#cómo-ejecutar)
-- [Problemas conocidos](#problemas-conocidos)
-- [Integrantes Grupos](#integrantes-grupos)
-
----
 
 # IRM Performance
 <p align="justify">
@@ -28,7 +17,19 @@ El proyecto IRM Performance Tracker consiste en el desarrollo de una aplicación
 
 </p>
 
-# Vistas
+## Índice
+
+- [Vistas](#vistas)
+- [APIs utilizadas](#apis-utilizadas)
+- [Listado de las funcionalidades](#listado-de-las-funcionalidades)
+
+- [Cómo ejecutar](#cómo-ejecutar)
+- [Problemas conocidos](#problemas-conocidos)
+- [Integrantes Grupos](#integrantes-grupos)
+
+---
+
+## Vistas
 
 ### Home
 
@@ -265,10 +266,6 @@ Una vez marcado, se podrá acceder a la sección de favoritos de la cuenta para 
 ---
 
 ## Cómo ejecutar
-### Prerrequisitos y máquina(s) de desarrollo/prueba:
-- Sistema Operativo: Ubuntu 24.04 // Arch Linux // fedora // WSL // macOS
-- Versión de Docker: 1:28.0.1-1
-- Cualquier otra información de relevancia
 
 ### Secuencia de comandos (docker) para descargar y lanzar la aplicación:
 **Paso 1:** 

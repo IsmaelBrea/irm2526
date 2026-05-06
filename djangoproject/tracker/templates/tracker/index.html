@@ -207,48 +207,7 @@
 </div>
 
 <script src="{% static 'tracker/js/index.js' %}"></script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const dropdowns = [
-        {
-            button: document.getElementById('btn-open-local'),
-            dropdown: document.getElementById('dropdown-local'),
-        },
-        {
-            button: document.getElementById('btn-open-visitor'),
-            dropdown: document.getElementById('dropdown-visitor'),
-        },
-    ];
 
-    const closeAll = () => {
-        dropdowns.forEach(({ dropdown }) => {
-            if (dropdown) dropdown.classList.add('hidden');
-        });
-    };
-
-    dropdowns.forEach(({ button, dropdown }) => {
-        if (!button || !dropdown) return;
-
-        button.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-
-            const willOpen = dropdown.classList.contains('hidden');
-            closeAll();
-
-            if (willOpen) {
-                dropdown.classList.remove('hidden');
-            }
-        });
-
-        dropdown.addEventListener('click', (event) => {
-            event.stopPropagation();
-        });
-    });
-
-    document.addEventListener('click', closeAll);
-});
-</script>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 mb-8">
     
