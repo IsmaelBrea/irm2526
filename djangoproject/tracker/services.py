@@ -402,8 +402,6 @@ def calculate_irm_probability(raw_data, team_a_id, team_b_id):
 
 
 # Obtiene los máximos goleadores de una competición
-
-
 def fetch_scorers(league_code, season=None):
 
     url = f"https://api.football-data.org/v4/competitions/{league_code}/scorers"
@@ -523,7 +521,6 @@ def fetch_matches_besoccer(league_id, round_num=None, year=None):
 
 
 # traducir id de liga entre football-data y api-football
-
 LEAGUE_ID_MAPPING = {
     2001: 2,  # Champions League
     2014: 140,  # Primera División
@@ -534,9 +531,8 @@ LEAGUE_ID_MAPPING = {
     2015: 102,  # Ligue 1
 }
 
+
 # Obtiene los máximos asistentes usando API-Sports
-
-
 def fetch_assists(league_id_football_data, season):
 
     league_id_apisports = LEAGUE_ID_MAPPING.get(league_id_football_data)
@@ -927,6 +923,7 @@ def match_odds_to_matches(matches, odds_list):
     return matches
 
 
+# Función para obtener coordenadas geográficas a partir de una dirección usando la API de Google Maps Geocoding
 def get_coords_from_address(address):
     if not address or address == "—":
         return None
