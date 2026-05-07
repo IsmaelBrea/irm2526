@@ -1,11 +1,118 @@
+from multiprocessing import context
+import os
+from urllib import response
+import pandas as pd
+from datetime import datetime
+from django.urls import reverse
 from django.views import generic
+from django.http import JsonResponse
+from urllib3 import request
 from .services import (
+    fetch_competitions,
+    fetch_player_person,
+    fetch_teams,
+    fetch_scorers,
     fetch_competitions,
     fetch_teams,
     fetch_scorers,
     fetch_standings,
+    fetch_performance_data,
+    fetch_standings,
     fetch_players_by_league,
+    calculate_irm_probability,
+    fetch_matches_football_data,
+    fetch_assists,
+    fetch_red_cards,
+    fetch_yellow_cards,
+    merge_and_sort_infractions,
+    fetch_team_detail,
+    fetch_team_matches,
+    get_coords_from_address,
 )
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from .forms import UserRegisterForm, UserLoginForm
+
+NATIONALITY_TO_ISO = {
+    "Germany": "de",
+    "Spain": "es",
+    "France": "fr",
+    "England": "gb-eng",
+    "Italy": "it",
+    "Portugal": "pt",
+    "Netherlands": "nl",
+    "Belgium": "be",
+    "Brazil": "br",
+    "Argentina": "ar",
+    "Uruguay": "uy",
+    "Colombia": "co",
+    "Croatia": "hr",
+    "Poland": "pl",
+    "Denmark": "dk",
+    "Sweden": "se",
+    "Norway": "no",
+    "Austria": "at",
+    "Switzerland": "ch",
+    "Morocco": "ma",
+    "Senegal": "sn",
+    "Nigeria": "ng",
+    "Ghana": "gh",
+    "Ivory Coast": "ci",
+    "Japan": "jp",
+    "South Korea": "kr",
+    "USA": "us",
+    "Mexico": "mx",
+    "Chile": "cl",
+    "Ecuador": "ec",
+    "Paraguay": "py",
+    "Serbia": "rs",
+    "Czech Republic": "cz",
+    "Slovakia": "sk",
+    "Hungary": "hu",
+    "Romania": "ro",
+    "Turkey": "tr",
+    "Greece": "gr",
+    "Ukraine": "ua",
+    "Russia": "ru",
+    "Wales": "gb-wls",
+    "Scotland": "gb-sct",
+    "Ireland": "ie",
+    "Algeria": "dz",
+    "Tunisia": "tn",
+    "Cameroon": "cm",
+    "Australia": "au",
+    "New Zealand": "nz",
+    "Costa Rica": "cr",
+    "Panama": "pa",
+    "Senegal": "sn",
+    "Morocco": "ma",
+    "Angola": "ao",
+    "Gabon": "ga",
+    "DR Congo": "cd",
+    "Ivory Coast": "ci",
+    "Ghana": "gh",
+    "Cameroon": "cm",
+    "Nigeria": "ng",
+    "Japan": "jp",
+    "South Korea": "kr",
+    "Czech Republic": "cz",
+    "Burkina Faso": "bf",
+    "Mali": "ml",
+    "Kosovo": "xk",
+    "Iceland": "is",
+    "Bosnia-Herzegovina": "ba",
+    "Ivory Coast": "ci",
+    "Turkey": "tr",
+    "Togo": "tg",
+    "Estonia": "ee",
+    "Bulgaria": "bg",
+    "Serbia": "rs",
+    "Slovakia": "sk",
+    "Hungary": "hu",
+    "Romania": "ro",
+}
 
 
 class HomeView(generic.TemplateView):
@@ -37,12 +144,41 @@ class HomeView(generic.TemplateView):
 
                     break
 
-            # Si hay liga, traemos equipos (Funcionalidad F2)
             context["teams"] = fetch_teams(selected_league_id)
 
         context["selected_league"] = selected_league
         context["scorers"] = scorers
+        context["preselect_team_id"] = self.request.GET.get("preselect", "")
+
+        preselect_team = None
+        if context["preselect_team_id"] and context.get("teams"):
+            for t in context["teams"]:
+                if str(t["id"]) == str(context["preselect_team_id"]):
+                    preselect_team = t
+                    break
+        context["preselect_team"] = preselect_team
+
         return context
+
+
+# Vista que une el Service (API) con el Analytics (Pandas)
+# Responde en formato JSON para que el JS actualice la interfaz sin recargar.
+def compare_teams(request, league_id, team_a_id, team_b_id):
+
+    try:
+        # Obtenemos datos masivos de la API
+        raw_data = fetch_performance_data(team_a_id, team_b_id, league_id)
+
+        # Procesa con Pandas
+        analysis_results = calculate_irm_probability(raw_data, team_a_id, team_b_id)
+
+        return JsonResponse({"status": "success", "data": analysis_results})
+
+    except Exception as e:
+        return JsonResponse(
+            {"status": "error", "message": f"Error en el motor IRM Engine: {str(e)}"},
+            status=500,
+        )
 
 
 class RendIndividualView(generic.TemplateView):
@@ -54,16 +190,16 @@ class RendIndividualView(generic.TemplateView):
         # Obtenemos competiciones
         all_leagues = fetch_competitions()
 
-        # IDs del anteproyecto
         target_ids = [2001, 2000, 2021, 2014, 2019, 2002, 2015]
         leagues = [league for league in all_leagues if league["id"] in target_ids]
         context["leagues"] = leagues
 
-        # Gestionamos selección (Funcionalidad F1)
         selected_league_id = self.request.GET.get("league")
         selected_league = None
         scorers = []
         standings = []
+        assists = []
+        total_cards = []
 
         if selected_league_id:
             for league in leagues:
@@ -72,16 +208,26 @@ class RendIndividualView(generic.TemplateView):
                     season = selected_league["currentSeason"]["startDate"][:4]
 
                     scorers = fetch_scorers(league["code"], season)
+
+                    assists = fetch_assists(int(selected_league_id), season)
+
                     standings = fetch_standings(league["code"], season)
+
+                    yellow_cards = fetch_yellow_cards(int(selected_league_id), season)
+                    red_cards_raw = fetch_red_cards(int(selected_league_id), season)
+                    total_cards = merge_and_sort_infractions(
+                        red_cards_raw, yellow_cards
+                    )
 
                     break
 
-            # Si hay liga, traemos equipos (Funcionalidad F2)
             context["teams"] = fetch_teams(selected_league_id)
 
         context["selected_league"] = selected_league
         context["scorers"] = scorers
+        context["assists"] = assists
         context["standings"] = standings
+        context["total_cards"] = total_cards
         return context
 
 
@@ -111,3 +257,283 @@ class DatosJugadorView(generic.TemplateView):
         context["selected_league"] = selected_league
         context["players"] = players
         return context
+
+
+# Retorna competiciones del jugador
+def get_player_stats(request):
+    player_id = request.GET.get("player_id")
+
+    if not player_id:
+        return JsonResponse(
+            {"status": "error", "message": "player_id required"}, status=400
+        )
+
+    try:
+        data = fetch_player_person(player_id)
+
+        if data is None:
+            return JsonResponse(
+                {"status": "error", "message": "No se pudieron obtener los datos"},
+                status=500,
+            )
+
+        return JsonResponse({"status": "success", "data": data})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+# Retorna partidos de una liga
+def get_league_matches(request):
+    league_id = request.GET.get("league_id")
+    round_num = request.GET.get("round")
+    year = request.GET.get("year")
+
+    if not league_id:
+        return JsonResponse(
+            {"status": "error", "message": "league_id required"}, status=400
+        )
+
+    try:
+        league_id = int(league_id)
+        matches = fetch_matches_football_data(
+            league_id, matchday=round_num, season=year
+        )
+        return JsonResponse({"status": "success", "data": matches})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+class PartidosView(generic.TemplateView):
+    template_name = "tracker/partidos.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        all_leagues = fetch_competitions()
+        target_ids = [2001, 2000, 2021, 2014, 2019, 2002, 2015]
+        leagues = [league for league in all_leagues if league["id"] in target_ids]
+        context["leagues"] = leagues
+
+        selected_league_id = self.request.GET.get("league")
+        selected_league = None
+
+        if selected_league_id:
+            for league in leagues:
+                if str(league["id"]) == selected_league_id:
+                    selected_league = league
+                    break
+
+        context["selected_league"] = selected_league
+        return context
+
+
+class AnalisisAvanzadoView(generic.TemplateView):
+    template_name = "tracker/analisis_avanzado.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        all_leagues = fetch_competitions()
+        target_ids = [2001, 2000, 2021, 2014, 2019, 2002, 2015]
+        context["leagues"] = [l for l in all_leagues if l["id"] in target_ids]
+
+        league_id = self.request.GET.get("league")
+        team_id = self.request.GET.get("team")
+        selected_league = None
+
+        if league_id:
+            context["teams"] = fetch_teams(league_id)
+            context["selected_league_id"] = league_id
+            # Recuperar objeto de la liga seleccionada para la cabecera
+            for l in all_leagues:
+                if str(l["id"]) == str(league_id):
+                    selected_league = l
+                    context["selected_league"] = l
+                    break
+
+        if team_id:
+            team_detail = fetch_team_detail(team_id)
+            matches_raw = fetch_team_matches(team_id)
+
+            if team_detail and matches_raw:
+                # 1. LOCALIZACIÓN
+                address = team_detail.get("address")
+                context["team_coords"] = get_coords_from_address(address)
+                context["maps_js_key"] = os.getenv("MAPS_JS_API_KEY")
+
+                # 2. PROCESAMIENTO DE PARTIDOS (PANDAS)
+                df_matches = pd.DataFrame(matches_raw)
+                df_matches["goals_for"] = df_matches.apply(
+                    lambda x: (
+                        x["score"]["fullTime"]["home"]
+                        if str(x["homeTeam"]["id"]) == str(team_id)
+                        else x["score"]["fullTime"]["away"]
+                    ),
+                    axis=1,
+                )
+                df_matches["goals_against"] = df_matches.apply(
+                    lambda x: (
+                        x["score"]["fullTime"]["away"]
+                        if str(x["homeTeam"]["id"]) == str(team_id)
+                        else x["score"]["fullTime"]["home"]
+                    ),
+                    axis=1,
+                )
+
+                context["stats"] = {
+                    "avg_goals_for": round(df_matches["goals_for"].tail(5).mean(), 2),
+                    "avg_goals_against": round(
+                        df_matches["goals_against"].tail(5).mean(), 2
+                    ),
+                    "total_matches": len(df_matches),
+                }
+                context["recent_matches"] = matches_raw[-10:]
+
+                # --- OBTENER CLASIFICACIÓN PARA LA TABLA FINAL ---
+                if selected_league:
+                    season = selected_league.get("currentSeason", {}).get(
+                        "startDate", ""
+                    )[:4]
+                    standings_raw = fetch_standings(selected_league["code"], season)
+                    context["standings"] = standings_raw
+
+                # 3. PROCESAMIENTO DE PLANTILLA Y BANDERAS (CRÍTICO)
+                squad_data = team_detail.get("squad", [])
+                if squad_data:
+                    df_squad = pd.DataFrame(squad_data)
+
+                    # Mapear códigos de banderas
+                    df_squad["flag_code"] = (
+                        df_squad["nationality"]
+                        .fillna("")
+                        .map(lambda n: NATIONALITY_TO_ISO.get(n, "").lower())
+                    )
+
+                    # Ordenar posiciones
+                    pos_order = {
+                        "Goalkeeper": 0,
+                        "Defence": 1,
+                        "Midfield": 2,
+                        "Offence": 3,
+                    }
+                    df_squad["pos_idx"] = df_squad["position"].map(pos_order).fillna(4)
+                    df_squad = df_squad.sort_values("pos_idx")
+
+                    context["squad"] = df_squad.to_dict("records")
+
+                context["team"] = team_detail
+
+                is_favorite = False
+                if self.request.user.is_authenticated and team_id:
+                    is_favorite = FavoriteTeam.objects.filter(
+                        user=self.request.user, team_id=team_id
+                    ).exists()
+                context["is_favorite"] = is_favorite
+
+        return context
+
+
+class RegisterView(generic.CreateView):
+    form_class = UserRegisterForm
+    template_name = "tracker/register.html"
+
+    def get_success_url(self):
+        return reverse("tracker:home")
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = form.save()
+        login(self.request, user)
+        return response
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect("tracker:home")
+
+    if request.method == "POST":
+        form = UserLoginForm(request.POST)
+        if form.is_valid():
+            username_or_email = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
+
+            user = authenticate(request, username=username_or_email, password=password)
+
+            if user is None:
+                try:
+                    user_obj = User.objects.get(email=username_or_email)
+                    user = authenticate(
+                        request, username=user_obj.username, password=password
+                    )
+                except User.DoesNotExist:
+                    user = None
+
+            if user is not None:
+                login(request, user)
+                return redirect("tracker:home")
+            else:
+                form.add_error(None, "Credenciales inválidas")
+    else:
+        form = UserLoginForm()
+
+    return render(request, "tracker/login.html", {"form": form})
+
+
+@login_required(login_url="tracker:login")
+def logout_view(request):
+    logout(request)
+    return redirect("tracker:home")
+
+
+from django.http import JsonResponse
+from .models import FavoriteTeam
+
+
+# Agrega o quita un equipo de favoritos
+@login_required(login_url="tracker:login")
+def toggle_favorite_team(request):
+
+    if request.method == "POST":
+        team_id = request.POST.get("team_id")
+        team_name = request.POST.get("team_name")
+        team_crest = request.POST.get("team_crest", "")
+        league_id = request.POST.get("league_id")
+
+        if not team_id or not team_name:
+            return JsonResponse(
+                {"status": "error", "message": "Datos incompletos"}, status=400
+            )
+
+        try:
+            team_id = int(team_id)
+            favorite = FavoriteTeam.objects.filter(user=request.user, team_id=team_id)
+
+            if favorite.exists():
+                favorite.delete()
+                is_favorite = False
+            else:
+                FavoriteTeam.objects.create(
+                    user=request.user,
+                    team_id=team_id,
+                    team_name=team_name,
+                    team_crest=team_crest,
+                    league_id=league_id,
+                )
+                is_favorite = True
+
+            return JsonResponse({"status": "success", "is_favorite": is_favorite})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+    return JsonResponse(
+        {"status": "error", "message": "Método no permitido"}, status=405
+    )
+
+
+# Muestra los equipos favoritos del usuario
+@login_required(login_url="tracker:login")
+def favorite_teams_view(request):
+    favorites = FavoriteTeam.objects.filter(user=request.user).order_by("-created_at")
+    context = {
+        "favorites": favorites,
+    }
+    return render(request, "tracker/favoritos.html", context)

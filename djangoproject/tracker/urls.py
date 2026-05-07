@@ -4,6 +4,28 @@ from . import views
 app_name = "tracker"
 urlpatterns = [
     path("home/", views.HomeView.as_view(), name="home"),
+    path(
+        "compare/<int:league_id>/<int:team_a_id>/<int:team_b_id>/",
+        views.compare_teams,
+        name="compare_teams",
+    ),
     path("rend-individual/", views.RendIndividualView.as_view(), name="league-detail"),
     path("datos-jugador/", views.DatosJugadorView.as_view(), name="datos-jugador"),
+    path(
+        "api/player-stats/",
+        views.get_player_stats,
+        name="get_player_stats",
+    ),
+    path("api/league-matches/", views.get_league_matches, name="get_league_matches"),
+    path("partidos/", views.PartidosView.as_view(), name="partidos"),
+    path(
+        "analisis-avanzado/",
+        views.AnalisisAvanzadoView.as_view(),
+        name="analisis-avanzado",
+    ),
+    path("login/", views.login_view, name="login"),
+    path("logout/", views.logout_view, name="logout"),
+    path("register/", views.RegisterView.as_view(), name="register"),
+    path("favoritos/", views.favorite_teams_view, name="favoritos"),
+    path("toggle-favorite/", views.toggle_favorite_team, name="toggle_favorite"),
 ]

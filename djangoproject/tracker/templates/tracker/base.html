@@ -4,31 +4,98 @@
     <meta charset="UTF-8">
     <title>IRM Performance Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background-color: #020617; }
-        .custom-scroll::-webkit-scrollbar { width: 3px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #15803d; border-radius: 10px; }
-    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css"/>
+    
+    {% block extra_head %}{% endblock %}
+
+   <style>
+    body { background-color: #020617; }
+    .custom-scroll::-webkit-scrollbar { width: 3px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #15803d; border-radius: 10px; }
+
+    /* ── Placeholder global para vistas sin liga seleccionada ── */
+    .irm-placeholder {
+        color: #94a3b8;
+        font-family: monospace;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.4em;
+        animation: irmPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes irmPulse {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.3; }
+    }
+</style>
 </head>
 <body class="text-slate-50">
     <div class="flex h-screen overflow-hidden">
 
         <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col">
             <div class="p-6 border-b border-slate-800">
-                <h1 class="text-xl font-black text-green-500 tracking-tighter italic">IRM TRACKER</h1>
+                <a href="{% url 'tracker:home' %}" class="block hover:opacity-80 transition-opacity">
+                    <h1 class="text-xl font-black text-green-500 tracking-tighter italic">IRM TRACKER</h1>
+                </a>
             </div>
-            <nav class="flex-1 overflow-y-auto custom-scroll p-4 space-y-6">
-                {% include "tracker/leagues.html" %}
+            
+            <nav class="flex-1 overflow-y-auto custom-scroll p-4 flex flex-col">
+                <div class="flex-1">
+                    {% include "tracker/leagues.html" %}
+                </div>
+        
+                {% include "tracker/nav_extra.html" %}
             </nav>
         </aside>
 
         <div class="flex-1 flex flex-col overflow-hidden">
-            <header class="h-16 border-b border-slate-800 flex items-center px-8 bg-slate-900/20">
-                <div class="flex items-center gap-2 text-[10px] font-mono text-slate-500 uppercase">
-                    <span>Procesado por IRM Engine</span>
-                    <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
-                </div>
-            </header>
+<header class="h-16 border-b border-slate-800 flex items-center justify-between px-8 bg-slate-900/20">
+    <div class="flex items-center gap-2 text-[10px] font-mono text-slate-500 uppercase">
+        <span>Procesado por IRM Engine</span>
+        <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
+    </div>
+    <div class="flex items-center gap-4 relative">
+
+        {% if request.resolver_match.url_name == 'datos-jugador' %}
+        <a href="{% url 'tracker:league-detail' %}?league={{ request.GET.league }}" 
+           class="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-green-500 transition"
+           title="Rendimiento Individual">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        {% endif %}
+{% if request.resolver_match.url_name != 'home' %}
+<a href="{% url 'tracker:home' %}{% if request.GET.league %}?league={{ request.GET.league }}{% endif %}"   class="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-green-500 transition">
+    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+</svg>
+</a>
+{% endif %}
+    {% if user.is_authenticated %}
+        <div class="relative group">
+    <button class="text-slate-300 text-sm font-semibold hover:text-green-500 transition-colors flex items-center gap-2">
+        {{ user.username }}
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+    </button>
+    
+    <div class="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+    <a href="{% url 'tracker:favoritos' %}" class="flex items-center gap-3 px-4 py-2 text-slate-300 hover:text-green-500 hover:bg-slate-700/50 first:rounded-t-lg transition-colors">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Favoritos
+    </a>
+    <a href="{% url 'tracker:logout' %}" class="flex items-center gap-3 px-4 py-2 text-slate-300 hover:text-red-500 hover:bg-slate-700/50 last:rounded-b-lg transition-colors border-t border-slate-700">
+        <svg class="w-4 h-4" stroke="currentColor" fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        Cerrar Sesión
+    </a>
+</div>
+</div>
+    {% else %}
+        <a href="{% url 'tracker:login' %}" class="text-green-500 hover:text-green-400 text-sm font-semibold">Iniciar Sesión</a>
+    {% endif %}
+</div>
+</header>
             <main class="flex-1 overflow-y-auto p-10">
                 {% block content %}{% endblock %}
             </main>

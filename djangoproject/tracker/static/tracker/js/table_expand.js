@@ -14,6 +14,37 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleScorersBtn.textContent = scorersExpanded ? 'Ver menos' : 'Ver más';
         });
     }
+        // Toggle Assists
+   const toggleAssistsBtn = document.getElementById('toggle-assists');
+if (toggleAssistsBtn) {
+    const assistRows = document.querySelectorAll('.assists-row');
+    let assistsExpanded = false;
+    toggleAssistsBtn.addEventListener('click', function() {
+        assistsExpanded = !assistsExpanded;
+        assistRows.forEach(row => {
+            if (row.getAttribute('data-hidden') === 'true') {
+                row.style.display = assistsExpanded ? 'table-row' : 'none';
+            }
+        });
+        toggleAssistsBtn.textContent = assistsExpanded ? 'Ver menos' : 'Ver más';
+    });
+}
+
+    // Toggle Cards
+    const toggleCardsBtn = document.getElementById('toggle-cards');
+    if (toggleCardsBtn) {
+        const cardRows = document.querySelectorAll('.cards-row');
+        let cardsExpanded = false;
+        toggleCardsBtn.addEventListener('click', function() {
+            cardsExpanded = !cardsExpanded;
+            cardRows.forEach(row => {
+                if (row.getAttribute('data-hidden') === 'true') {
+                    row.style.display = cardsExpanded ? 'table-row' : 'none';
+                }
+            });
+            toggleCardsBtn.textContent = cardsExpanded ? 'Ver menos' : 'Ver más';
+        });
+    }
 
     // Toggle Standings
     const toggleBtn = document.getElementById('toggle-standings');

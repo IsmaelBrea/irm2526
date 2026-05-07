@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>IRM Tracker - Mis Favoritos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-50">
+    <div class="min-h-screen p-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- Cabecera con botón volver -->
+            <div class="flex items-center justify-between mb-8">
+                <h1 class="text-3xl font-black text-green-500 italic">MIS EQUIPOS FAVORITOS</h1>
+                <a href="{% url 'tracker:home' %}" class="inline-flex items-center gap-1 px-3 py-1 border border-green-500 text-green-500 hover:bg-green-500/10 font-bold text-sm rounded transition-colors">
+                    ← Volver
+                </a>
+            </div>
+
+            <!-- Contenido -->
+            {% if favorites %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {% for favorite in favorites %}
+                        <div class="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-green-500 transition-colors">
+                            <div class="text-center space-y-4">
+    <!-- Escudo del equipo -->
+    {% if favorite.team_crest %}
+        <img src="{{ favorite.team_crest }}" class="w-16 h-16 object-contain mx-auto">
+    {% else %}
+        <div class="text-6xl">⚽</div>
+    {% endif %}
+    
+    <!-- Nombre del equipo -->
+    <h3 class="text-xl font-bold text-slate-50">{{ favorite.team_name }}</h3>
+    
+    <!-- Botones -->
+    <div class="flex gap-2 pt-4">
+        <a href="{% url 'tracker:analisis-avanzado' %}?league={{ favorite.league_id|default:2001 }}&team={{ favorite.team_id }}" 
+           class="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded transition-colors text-sm">
+            Ver análisis
+        </a>
+        <button class="flex items-center gap-1 px-3 py-2 text-red-500 hover:bg-red-600/20 rounded transition-colors remove-favorite text-sm font-semibold"
+        data-team-id="{{ favorite.team_id }}"
+        data-team-name="{{ favorite.team_name }}">
+    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-9l-1 1H5v2h14V4z"/></svg>
+    Eliminar
+</button>
+    </div>
+</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-16">
+                    <p class="text-slate-400 text-lg mb-4">No tienes equipos favoritos</p>
+                    <a href="{% url 'tracker:analisis-avanzado' %}" class="text-green-500 hover:text-green-400 font-semibold">
+                        Ir a análisis avanzado para agregar favoritos
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% load static %}
+    <script src="{% static 'tracker/js/favoritos.js' %}"></script>
+</body>
+</html>

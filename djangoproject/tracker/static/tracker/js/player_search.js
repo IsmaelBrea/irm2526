@@ -6,10 +6,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('player-search');
     const teamFilter = document.getElementById('team-filter');
     const dropdown = document.getElementById('player-dropdown');
-    const statsContainer = document.getElementById('stats-container');
+    const competitionsContainer = document.getElementById('competitions-container');
     const infoContainer = document.getElementById('info-container');
-    const trajectoryContainer = document.getElementById('trajectory-container');
-    // Llenar select de equipos únicos
+
     const uniqueTeams = [...new Set(players.map(p => p.team_name))].sort();
     uniqueTeams.forEach(team => {
         const option = document.createElement('option');
@@ -69,32 +68,80 @@ document.addEventListener('DOMContentLoaded', function() {
         dropdown.classList.remove('hidden');
     }
 
-    function selectPlayer(player) {
+function selectPlayer(player) {
     searchInput.value = player.name;
     dropdown.classList.add('hidden');
 
     // Llenar información
     document.getElementById('info-name').textContent = `${player.firstName || ''} ${player.lastName || player.name}`.trim();
-    document.getElementById('info-dob').textContent = player.dateOfBirth || 'N/A';
-    document.getElementById('info-position').textContent = player.position || 'N/A';
-    document.getElementById('info-nationality').textContent = player.nationality || 'N/A';
-document.getElementById('info-team').textContent = player.team_name || 'N/A';
-const crestDiv = document.getElementById('info-team-crest');
-const crest = player.team_crest 
-    ? `<img src="${player.team_crest}" class="w-6 h-6 object-contain">` 
-    : '';
-crestDiv.innerHTML = crest;
-    statsContainer.classList.remove('hidden');
+    document.getElementById('info-dob').textContent = player.dateOfBirth || '-';
+    document.getElementById('info-position').textContent = player.position || '-';
+    document.getElementById('info-nationality').textContent = player.nationality || '-';
+    document.getElementById('info-team').textContent = player.team_name || '-';
+    
+    const crestDiv = document.getElementById('info-team-crest');
+    const crest = player.team_crest 
+        ? `<img src="${player.team_crest}" class="w-6 h-6 object-contain">` 
+        : '';
+    crestDiv.innerHTML = crest;
+
+    competitionsContainer.classList.remove('hidden');
     infoContainer.classList.remove('hidden');
-    trajectoryContainer.classList.remove('hidden');
+
+    const competitionsList = document.getElementById('competitions-list');
+    competitionsList.innerHTML = '<p class="text-slate-400">Cargando...</p>';
+
+    if (!player.id) {
+    competitionsList.innerHTML = `<p class="text-red-400">Sin ID - Propiedades: ${Object.keys(player).join(', ')}</p>`;
+    return;
 }
 
-        // Focus en el input activa el filtro aunque esté vacío
+    fetch(`/tracker/api/player-stats/?player_id=${player.id}`)
+    .then(r => {
+        competitionsList.innerHTML = `<p>Status: ${r.status}</p>`;
+        return r.json();
+    })
+    .then(data => {
+        competitionsList.innerHTML = `
+            <p>Data recibida: ${JSON.stringify(data).substring(0, 100)}</p>
+            <p>Status: ${data.status}</p>
+            <p>CurrentTeam: ${data.data?.currentTeam ? 'existe' : 'NO existe'}</p>
+            <p>Competiciones: ${data.data?.currentTeam?.runningCompetitions ? data.data.currentTeam.runningCompetitions.length : 'NO existe'}</p>
+        `;
+        
+        if (data.status === 'success' && data.data.currentTeam && data.data.currentTeam.runningCompetitions) {
+            const competitions = data.data.currentTeam.runningCompetitions;
+            competitionsList.innerHTML = '';
+            
+            competitions.forEach(comp => {
+                const item = document.createElement('div');
+                item.className = 'bg-slate-800/50 p-4 rounded flex items-center gap-4';
+                item.innerHTML = `
+                    <div class="bg-white rounded p-2 flex items-center justify-center w-12 h-12 flex-shrink-0">
+                        ${comp.emblem ? `<img src="${comp.emblem}" class="w-8 h-8 object-contain">` : '<span class="w-8 h-8"></span>'}
+                    </div>
+                    <div>
+                        <p class="text-white font-semibold text-base">${comp.name}</p>
+                        <p class="text-slate-400 text-sm">${comp.type}</p>
+                    </div>
+                `;
+                competitionsList.appendChild(item);
+            });
+        } else {
+            competitionsList.innerHTML = '<p class="text-slate-400">Sin competiciones</p>';
+        }
+    })
+    .catch(e => {
+        competitionsList.innerHTML = `<p class="text-red-400">Error: ${e.message}</p>`;
+    });
+}
+
+
     searchInput.addEventListener('focus', filterPlayers);
     searchInput.addEventListener('input', filterPlayers);
     teamFilter.addEventListener('change', function() {
-        dropdown.classList.add('hidden'); // Solo cierra el dropdown, no lo abre
-        searchInput.value = ''; // Limpia el buscador también (opcional)
+        dropdown.classList.add('hidden'); 
+        searchInput.value = '';
     });
 
     document.addEventListener('click', function(e) {
