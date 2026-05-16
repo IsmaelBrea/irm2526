@@ -21,6 +21,7 @@ from django.urls import include, path
 from tracker import views
 
 urlpatterns = [
+    path("", views.HomeView.as_view(), name="home"),
     path("tracker/", include("tracker.urls")),
     path("admin/", admin.site.urls),
 ]
